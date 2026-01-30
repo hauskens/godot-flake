@@ -12,7 +12,7 @@
 #   LokiLogger.error("Failed to load save")
 #   LokiLogger.critical("Unrecoverable state")
 
-class_name LokiLogger extends Logger
+class_name Log extends Logger
 
 # ============================================================================
 # Configuration
@@ -73,7 +73,7 @@ static var _is_setup: bool = false
 
 static func _static_init() -> void:
 	_session_id = _generate_session_id()
-	OS.add_logger(LokiLogger.new())
+	OS.add_logger(Log.new())
 
 
 ## Call this from an autoload's _ready() to enable HTTP transport
@@ -137,12 +137,12 @@ func _log_error(
 	)
 
 
-func _log_message(message: String, is_error: bool) -> void:
+func _log_message(message: String, _error: bool) -> void:
 	# Skip our own prints (marked with special tag)
 	if message.begins_with("[lang=tlh]"):
 		return
 
-	var level := Level.ERROR if is_error else Level.INFO
+	var level := Level.ERROR if error else Level.INFO
 	_queue_entry(
 		{
 			"level": LEVEL_STRINGS[level],
@@ -228,27 +228,32 @@ static func _send_batch() -> void:
 		_buffer.clear()
 		return
 
-	# Build Loki push format
-	var values: Array = []
+	# Group logs by level to create separate streams
+	var streams_by_level: Dictionary = {}
+
 	for entry in _buffer:
+		var level: String = entry.get("level", "INFO")
+		if not streams_by_level.has(level):
+			streams_by_level[level] = []
+
 		var ts_ns := str(int(entry["ts"] * 1_000_000_000))
 		entry.erase("ts")
-		values.append([ts_ns, JSON.stringify(entry)])
+		streams_by_level[level].append([ts_ns, JSON.stringify(entry)])
 
-	var payload := {
-		"streams":
-		[
-			{
-				"stream":
-				{
-					"app": APP_LABEL,
-					"session_id": _session_id,
-					"debug": str(OS.is_debug_build()).to_lower(),
-				},
-				"values": values
-			}
-		]
-	}
+	# Build streams array with level labels
+	var streams: Array = []
+	for level in streams_by_level:
+		streams.append({
+			"stream": {
+				"app": APP_LABEL,
+				"session_id": _session_id,
+				"debug": str(OS.is_debug_build()).to_lower(),
+				"level": level,
+			},
+			"values": streams_by_level[level]
+		})
+
+	var payload := {"streams": streams}
 
 	_buffer.clear()
 
