@@ -6,5 +6,6 @@
     nixfmt.enable = true;
     shfmt.enable = true;
     gdformat.enable = true;
+    rustfmt.enable = true;
   };
 }

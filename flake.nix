@@ -53,10 +53,17 @@
           default = pkgs.mkShell {
             packages = with pkgs; [
               godot_4
+              rustc
+              cargo
+              rustfmt
+              rust-analyzer
+              pkg-config
+              clang
             ];
+            RUST_SRC_PATH = "${pkgs.rustPlatform.rustLibSrc}";
             shellHook = ''
               ${self.checks.${system}.pre-commit-check.shellHook}
-              echo "Welcome to the Godot dev shell"
+              echo "Welcome to the Godot + Rust dev shell"
             '';
           };
         }
