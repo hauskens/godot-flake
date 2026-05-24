@@ -1,0 +1,35 @@
+[gd_scene format=3 uid="uid://c4ballp1nb411"]
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_ball"]
+friction = 0.05
+bounce = 0.35
+
+[sub_resource type="SphereMesh" id="SphereMesh_ball"]
+radius = 0.25
+height = 0.5
+
+[sub_resource type="StandardMaterial3D" id="Mat_ball"]
+albedo_color = Color(0.9, 0.9, 0.95, 1)
+metallic = 0.85
+roughness = 0.2
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_ball"]
+radius = 0.25
+
+[node name="Ball" type="Ball" unique_id=770886914]
+collision_layer = 3
+collision_mask = 3
+physics_material_override = SubResource("PhysicsMaterial_ball")
+continuous_cd = true
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1838320351]
+mesh = SubResource("SphereMesh_ball")
+surface_material_override/0 = SubResource("Mat_ball")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=235314563]
+shape = SubResource("SphereShape3D_ball")
+
+[node name="Timer" type="Timer" parent="." unique_id=1009423328]
+wait_time = 5.0
+one_shot = true
+autostart = true

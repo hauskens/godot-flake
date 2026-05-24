@@ -8,3 +8,4 @@ crate-type = ["cdylib"]
 
 [dependencies]
 godot = "0.5.3"
+derive_more = { version = "2.1", features = ["add", "add_assign", "display", "from", "into", "mul"] }

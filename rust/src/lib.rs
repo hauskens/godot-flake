@@ -1,4 +1,7 @@
-use godot::classes::{ISprite2D, Sprite2D};
+mod ball;
+mod flipper;
+
+use derive_more::{Add, AddAssign, Display, From, Into, Mul, Sub};
 use godot::prelude::*;
 
 struct MyExtension;
@@ -6,32 +9,37 @@ struct MyExtension;
 #[gdextension]
 unsafe impl ExtensionLibrary for MyExtension {}
 
-#[derive(GodotClass)]
-#[class(base=Sprite2D)]
-struct Player {
-    speed: f64,
-    angular_speed: f64,
+#[derive(
+    GodotConvert,
+    Var,
+    Export,
+    Clone,
+    Copy,
+    Debug,
+    Default,
+    PartialEq,
+    PartialOrd,
+    Display,
+    From,
+    Into,
+    Add,
+    Sub,
+    Mul,
+    AddAssign,
+)]
+#[godot(transparent)]
+pub struct Degrees(pub f32);
 
-    base: Base<Sprite2D>,
-}
-
-#[godot_api]
-impl ISprite2D for Player {
-    fn init(base: Base<Sprite2D>) -> Self {
-        godot_print!("Hello, world!"); // Prints to the Godot console
-
-        Self {
-            speed: 400.0,
-            angular_speed: std::f64::consts::PI,
-            base,
-        }
+impl Degrees {
+    pub fn to_radians(self) -> f32 {
+        self.0.to_radians()
     }
-    fn physics_process(&mut self, delta: f64) {
-        let radians = (self.angular_speed * delta) as f32;
-        self.base_mut().rotate(radians);
 
-        let rotation = self.base().get_rotation();
-        let velocity = Vector2::UP.rotated(rotation) * self.speed as f32;
-        self.base_mut().translate(velocity * delta as f32);
+    pub fn abs(self) -> Self {
+        Self(self.0.abs())
+    }
+
+    pub fn signum(self) -> f32 {
+        self.0.signum()
     }
 }
