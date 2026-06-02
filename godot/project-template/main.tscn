@@ -100,7 +100,7 @@ surface_material_override/0 = SubResource("Mat_wall")
 shape = SubResource("BoxShape3D_wall_top")
 
 [node name="WallRight3" type="StaticBody3D" parent="Playfield" unique_id=836507204]
-transform = Transform3D(1, 0, 0, 0, 0.9999999, 0, 0, 0, 0.9999999, -1.7861648, 0.35, 0)
+transform = Transform3D(1, 0, 0, 0, 0.9999999, 0, 0, 0, 0.9999999, 1.1889381, 0.35, 0)
 physics_material_override = ExtResource("2_h2yge")
 
 [node name="Mesh" type="MeshInstance3D" parent="Playfield/WallRight3" unique_id=1348121043]
@@ -135,13 +135,10 @@ shape = SubResource("BoxShape3D_4emaf")
 
 [node name="Flipper" parent="Playfield" unique_id=138794086 instance=ExtResource("2_flipper")]
 input_action = &"flipper_left"
-torque = 150.0
-transform = Transform3D(1, 5.2108035e-15, 1.748456e-07, -5.3290705e-15, 1.000001, 0, -1.7484567e-07, 0, 1.000001, -1.3211942, 0.08701551, 5.417316)
-mass = 2.0
+transform = Transform3D(1, 5.2108035e-15, 1.748456e-07, -5.3290705e-15, 1.000001, 0, -1.7484567e-07, 0, 1.000001, -1.4411933, 0.08701551, 5.417316)
 
 [node name="Flipper2" parent="Playfield" unique_id=1667489907 instance=ExtResource("2_flipper")]
 input_action = &"flipper_right"
-torque = 800.0
+torque_hold = 200.0
 reverse_direction = true
-transform = Transform3D(-1, 0, -8.742278e-08, 0, 1.0000005, -5.9604645e-08, 8.742281e-08, -5.9604645e-08, -1.0000005, 2.671, 0.08701551, 5.417316)
-mass = 20.0
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1.0000005, -5.9604645e-08, 8.742281e-08, -5.9604645e-08, -1.0000005, 2.7988842, 0.08701551, 5.417316)

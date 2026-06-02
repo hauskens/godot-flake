@@ -9,7 +9,7 @@ friction = 0.0
 [node name="Flipper" type="Flipper" unique_id=1667489907]
 collision_layer = 2
 collision_mask = 2
-mass = 5.0
+mass = 20.0
 physics_material_override = SubResource("PhysicsMaterial_qmqmj")
 gravity_scale = 0.0
 can_sleep = false
