@@ -1,5 +1,6 @@
 mod ball;
 mod flipper;
+mod gm;
 
 use derive_more::{Add, AddAssign, Display, From, Into, Mul, Sub};
 use godot::prelude::*;

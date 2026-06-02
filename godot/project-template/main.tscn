@@ -1,28 +1,27 @@
 [gd_scene format=3 uid="uid://b3ng5ly3u58n8"]
 
-[ext_resource type="PackedScene" uid="uid://c4ballp1nb411" path="res://ball.tscn" id="1_ball"]
+[ext_resource type="PackedScene" uid="uid://be0yd8pra1406" path="res://launcher.tscn" id="1_h2yge"]
 [ext_resource type="PackedScene" uid="uid://sex1mn00jpq7" path="res://flipper.tscn" id="2_flipper"]
+[ext_resource type="PhysicsMaterial" uid="uid://t87ff0ic5tna" path="res://PM_wall.tres" id="2_h2yge"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_playfield"]
-size = Vector3(6, 0.2, 12)
+size = Vector3(12, 0.2, 12)
 
 [sub_resource type="StandardMaterial3D" id="Mat_playfield"]
 albedo_color = Color(0.12, 0.32, 0.18, 1)
 roughness = 0.7
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_playfield"]
-size = Vector3(6, 0.2, 12)
+size = Vector3(12, 0.2, 12)
 
-[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_0xm2m"]
-
-[sub_resource type="BoxMesh" id="BoxMesh_wall_side"]
-size = Vector3(0.3, 0.7, 12)
+[sub_resource type="BoxMesh" id="BoxMesh_1bvp3"]
+size = Vector3(0.3, 0.7, 11)
 
 [sub_resource type="StandardMaterial3D" id="Mat_wall"]
 albedo_color = Color(0.35, 0.25, 0.18, 1)
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_wall_side"]
-size = Vector3(0.3, 0.7, 12)
+[sub_resource type="BoxShape3D" id="BoxShape3D_lquwl"]
+size = Vector3(0.3, 0.7, 11)
 
 [sub_resource type="BoxMesh" id="BoxMesh_wall_top"]
 size = Vector3(6.6, 0.7, 0.3)
@@ -30,7 +29,17 @@ size = Vector3(6.6, 0.7, 0.3)
 [sub_resource type="BoxShape3D" id="BoxShape3D_wall_top"]
 size = Vector3(6.6, 0.7, 0.3)
 
-[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_h2yge"]
+[sub_resource type="BoxMesh" id="BoxMesh_wall_side"]
+size = Vector3(0.3, 0.7, 12)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_wall_side"]
+size = Vector3(0.3, 0.7, 12)
+
+[sub_resource type="BoxMesh" id="BoxMesh_iex1j"]
+size = Vector3(2, 0.7, 0.3)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_4emaf"]
+size = Vector3(2, 0.7, 0.3)
 
 [node name="World" type="Node3D" unique_id=619023377]
 
@@ -39,11 +48,14 @@ transform = Transform3D(0.96592593, 0.08844062, -0.24323969, -0.01019749, 0.9520
 shadow_enabled = true
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=501232139]
-transform = Transform3D(1, 0, 0, 0, 0.835088, 0.5501164, 0, -0.5501164, 0.835088, -1.5304501, 2.0563111, 7.4960413)
+transform = Transform3D(1, 0, 0, 0, 0.5737052, 0.8190619, 0, -0.8190619, 0.5737052, -1.5304501, 8.01106, 5.9094067)
 current = true
 
 [node name="Playfield" type="StaticBody3D" parent="." unique_id=717881652]
-transform = Transform3D(1, 0, 0, 0, 0.9167187, -0.39953315, 0, 0.39953315, 0.9167187, -1.612901, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 0.99254626, -0.12186936, 0, 0.12186936, 0.99254626, -1.612901, 0, 0)
+
+[node name="plunger" parent="Playfield" unique_id=260385356 instance=ExtResource("1_h2yge")]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 0.99999833, 0, 8.742278e-08, 0, -1, 3.8407824, 0.268374, 5.9035654)
 
 [node name="Mesh" type="MeshInstance3D" parent="Playfield" unique_id=691765929]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0)
@@ -55,18 +67,19 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0)
 shape = SubResource("BoxShape3D_playfield")
 
 [node name="WallRight" type="StaticBody3D" parent="Playfield" unique_id=618838804]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.15, 0.35, 0)
-physics_material_override = SubResource("PhysicsMaterial_0xm2m")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.15, 0.2894752, 0.5935892)
+physics_material_override = ExtResource("2_h2yge")
 
 [node name="Mesh" type="MeshInstance3D" parent="Playfield/WallRight" unique_id=204980815]
-mesh = SubResource("BoxMesh_wall_side")
+mesh = SubResource("BoxMesh_1bvp3")
 surface_material_override/0 = SubResource("Mat_wall")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Playfield/WallRight" unique_id=468290590]
-shape = SubResource("BoxShape3D_wall_side")
+shape = SubResource("BoxShape3D_lquwl")
 
 [node name="WallTop" type="StaticBody3D" parent="Playfield" unique_id=416342876]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.35, -6.15)
+physics_material_override = ExtResource("2_h2yge")
 
 [node name="Mesh" type="MeshInstance3D" parent="Playfield/WallTop" unique_id=2020262987]
 mesh = SubResource("BoxMesh_wall_top")
@@ -75,20 +88,20 @@ surface_material_override/0 = SubResource("Mat_wall")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Playfield/WallTop" unique_id=699451401]
 shape = SubResource("BoxShape3D_wall_top")
 
-[node name="WallRight2" type="StaticBody3D" parent="Playfield" unique_id=1820808481]
-transform = Transform3D(1, 0, 0, 0, 0.99999994, 0, 0, 0, 0.99999994, 0, 0.35, 0)
-physics_material_override = SubResource("PhysicsMaterial_0xm2m")
+[node name="WallTop" type="StaticBody3D" parent="Playfield/WallTop" unique_id=1400443]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.021441132, 12.2473755)
+physics_material_override = ExtResource("2_h2yge")
 
-[node name="Mesh" type="MeshInstance3D" parent="Playfield/WallRight2" unique_id=909600206]
-mesh = SubResource("BoxMesh_wall_side")
+[node name="Mesh" type="MeshInstance3D" parent="Playfield/WallTop/WallTop" unique_id=897211949]
+mesh = SubResource("BoxMesh_wall_top")
 surface_material_override/0 = SubResource("Mat_wall")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Playfield/WallRight2" unique_id=1086366913]
-shape = SubResource("BoxShape3D_wall_side")
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Playfield/WallTop/WallTop" unique_id=536508457]
+shape = SubResource("BoxShape3D_wall_top")
 
 [node name="WallRight3" type="StaticBody3D" parent="Playfield" unique_id=836507204]
-transform = Transform3D(1, 0, 0, 0, 0.9999999, 0, 0, 0, 0.9999999, -3.15, 0.35, 0)
-physics_material_override = SubResource("PhysicsMaterial_0xm2m")
+transform = Transform3D(1, 0, 0, 0, 0.9999999, 0, 0, 0, 0.9999999, -1.7861648, 0.35, 0)
+physics_material_override = ExtResource("2_h2yge")
 
 [node name="Mesh" type="MeshInstance3D" parent="Playfield/WallRight3" unique_id=1348121043]
 mesh = SubResource("BoxMesh_wall_side")
@@ -97,21 +110,38 @@ surface_material_override/0 = SubResource("Mat_wall")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Playfield/WallRight3" unique_id=2140569344]
 shape = SubResource("BoxShape3D_wall_side")
 
-[node name="BallSpawn" type="BallSpawn" parent="Playfield" unique_id=609104153]
-ball_scene = ExtResource("1_ball")
-transform = Transform3D(1, 0, 0, 0, 0.91188365, -0.41044825, 0, 0.41044825, 0.91188365, 1.575, 0, 0)
+[node name="WallRight4" type="StaticBody3D" parent="Playfield" unique_id=1970005530]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.446933, 0.26090235, 0.054097634)
+physics_material_override = ExtResource("2_h2yge")
 
-[node name="BallSpawn2" type="BallSpawn" parent="Playfield" unique_id=1157848461]
-ball_scene = ExtResource("1_ball")
-transform = Transform3D(1, 0, 0, 0, 0.91188365, -0.41044825, 0, 0.41044825, 0.91188365, -1.575, 0, 0)
+[node name="Mesh" type="MeshInstance3D" parent="Playfield/WallRight4" unique_id=1584568278]
+mesh = SubResource("BoxMesh_wall_side")
+skeleton = NodePath("../../WallRight4")
+surface_material_override/0 = SubResource("Mat_wall")
 
-[node name="Flipper" parent="Playfield" unique_id=701900562 instance=ExtResource("2_flipper")]
-input_action = &"flipper_right"
-transform = Transform3D(-1, 0, -8.742278e-08, 0, 1.0000002, 0, 8.742279e-08, 0, -1.0000002, 0, 0.351, 5.124)
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Playfield/WallRight4" unique_id=1270572784]
+shape = SubResource("BoxShape3D_wall_side")
+
+[node name="WallTop2" type="StaticBody3D" parent="Playfield" unique_id=342960017]
+transform = Transform3D(0.79805744, -0.0734362, -0.5980898, 0.07343627, 0.99700016, -0.024427153, 0.5980898, -0.024427101, 0.80105674, 3.7017574, 0.22655928, -5.9483047)
+
+[node name="Mesh" type="MeshInstance3D" parent="Playfield/WallTop2" unique_id=18939738]
+mesh = SubResource("BoxMesh_iex1j")
+skeleton = NodePath("../../WallTop2")
+surface_material_override/0 = SubResource("Mat_wall")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Playfield/WallTop2" unique_id=2114490515]
+shape = SubResource("BoxShape3D_4emaf")
+
+[node name="Flipper" parent="Playfield" unique_id=138794086 instance=ExtResource("2_flipper")]
+input_action = &"flipper_left"
+torque = 150.0
+transform = Transform3D(1, 5.2108035e-15, 1.748456e-07, -5.3290705e-15, 1.000001, 0, -1.7484567e-07, 0, 1.000001, -1.3211942, 0.08701551, 5.417316)
+mass = 2.0
 
 [node name="Flipper2" parent="Playfield" unique_id=1667489907 instance=ExtResource("2_flipper")]
-rest_angle_deg = -30.0
 input_action = &"flipper_right"
-transform = Transform3D(-1, 0, -8.742278e-08, 0, 1.0000005, -2.9802322e-08, 8.7422805e-08, -2.9802322e-08, -1.0000005, 3.15, 0.351, 5.124)
-mass = 1.0
-physics_material_override = SubResource("PhysicsMaterial_h2yge")
+torque = 800.0
+reverse_direction = true
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1.0000005, -5.9604645e-08, 8.742281e-08, -5.9604645e-08, -1.0000005, 2.671, 0.08701551, 5.417316)
+mass = 20.0
