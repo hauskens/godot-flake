@@ -45,10 +45,6 @@ impl IRigidBody3D for Flipper {
         }
     }
 
-    // fn ready(&mut self) {
-
-    // }
-
     fn physics_process(&mut self, delta: f64) {
         let just_pressed = !self.input_action.is_empty()
             && Input::singleton().is_action_just_pressed(&self.input_action);
@@ -65,10 +61,6 @@ impl IRigidBody3D for Flipper {
             self.torque_ramp = 0.0;
         }
         self.was_pressed = pressed;
-
-        if torque_ramp != 1.0 {
-            godot_print!("torque_ramp: {}", self.torque_ramp);
-        }
 
         if just_pressed {
             let local_axis = match self.reverse_direction {

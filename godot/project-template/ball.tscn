@@ -16,10 +16,10 @@ roughness = 0.2
 radius = 0.25
 
 [node name="Ball" type="Ball" unique_id=770886914]
-collision_layer = 3
+collision_layer = 7
 collision_mask = 3
 physics_material_override = SubResource("PhysicsMaterial_ball")
-gravity_scale = 10.0
+gravity_scale = 8.0
 can_sleep = false
 continuous_cd = true
 
@@ -33,4 +33,3 @@ shape = SubResource("SphereShape3D_ball")
 [node name="Timer" type="Timer" parent="." unique_id=1009423328]
 wait_time = 10.0
 one_shot = true
-autostart = true

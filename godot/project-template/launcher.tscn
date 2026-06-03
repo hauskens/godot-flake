@@ -33,23 +33,27 @@ resource_local_to_scene = true
 transparency = 1
 albedo_texture = SubResource("ViewportTexture_uy6ji")
 
+[sub_resource type="BoxShape3D" id="BoxShape3D_cvfd6"]
+size = Vector3(2, 1.5, 10)
+
 [node name="plunger" type="Plunger" unique_id=820066566]
 ball_scene = ExtResource("1_4emaf")
-force = 80.0
+safe_zone = AABB(0, 0, 5, 2, 1.5, 10)
+force = 30.0
 transform = Transform3D(1, 0, 0, 0, 0.99999833, 0, 0, 7.450581e-09, 1, 0, 0, 0)
 
-[node name="Node3D" type="StaticBody3D" parent="." unique_id=1975716940]
+[node name="BackPlate" type="StaticBody3D" parent="." unique_id=1975716940]
 
-[node name="Mesh" type="MeshInstance3D" parent="Node3D" unique_id=158595246]
+[node name="Mesh" type="MeshInstance3D" parent="BackPlate" unique_id=158595246]
 mesh = SubResource("BoxMesh_iex1j")
 skeleton = NodePath("../..")
 surface_material_override/0 = SubResource("Mat_wall")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Node3D" unique_id=86886449]
+[node name="Collision" type="CollisionShape3D" parent="BackPlate" unique_id=86886449]
 shape = SubResource("BoxShape3D_4emaf")
 
 [node name="BallSpawnPoint" type="BallSpawnPoint" parent="." unique_id=1698464493]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1.2655016)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.61359334)
 
 [node name="SpawnPreview" type="MeshInstance3D" parent="BallSpawnPoint" unique_id=628996563]
 mesh = SubResource("SphereMesh_iex1j")
@@ -57,7 +61,7 @@ skeleton = NodePath("../..")
 surface_material_override/0 = SubResource("StandardMaterial3D_4emaf")
 
 [node name="ProgressBarMesh" type="MeshInstance3D" parent="." unique_id=2098904986]
-transform = Transform3D(-4.3711385e-08, 0.99999994, 4.371139e-08, 0, -4.3711385e-08, 1, 0.99999994, 4.3711385e-08, 1.7763568e-15, 0, 0, 1.1752043)
+transform = Transform3D(-4.3711385e-08, 0.99999994, 4.371139e-08, 0, -4.3711385e-08, 1, 0.99999994, 4.3711385e-08, 1.7763568e-15, -0.3766619, 0, 1.1752043)
 mesh = SubResource("PlaneMesh_cvfd6")
 surface_material_override/0 = SubResource("StandardMaterial3D_bm0ek")
 
@@ -69,5 +73,12 @@ size = Vector2i(1000, 100)
 offset_right = 1000.0
 offset_bottom = 100.0
 max_value = 130.0
-value = 130.0
 texture_progress = ExtResource("2_cvfd6")
+
+[node name="SafeZone" type="Area3D" parent="." unique_id=991928271]
+collision_layer = 4
+collision_mask = 4
+
+[node name="Collision" type="CollisionShape3D" parent="SafeZone" unique_id=255968937]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 5)
+shape = SubResource("BoxShape3D_cvfd6")
