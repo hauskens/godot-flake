@@ -1333,6 +1333,7 @@ dependencies = [
  "bevy",
  "bevy_asset_loader",
  "cargo-godot-lib",
+ "derive_more",
  "godot",
  "godot-bevy",
 ]

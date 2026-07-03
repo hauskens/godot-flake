@@ -44,7 +44,6 @@ enum GameState {
     Loading,
     Menu,
     InGame,
-    GameOver,
 }
 
 /// Which menu screen is currently shown. Only exists while `GameState::Menu`.

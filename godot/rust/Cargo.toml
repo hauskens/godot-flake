@@ -12,6 +12,7 @@ godot = "0.4.5"
 godot-bevy = { version = "0.11.0", features = ["default"] }
 cargo-godot-lib = "0.2.0"
 bevy_asset_loader = "0.26"
+derive_more = "2.1.1"
 
 [workspace]
 # Empty workspace table to make this a standalone project

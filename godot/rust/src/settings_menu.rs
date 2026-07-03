@@ -18,13 +18,30 @@ use godot::global::godot_error;
 use godot::obj::Singleton;
 use godot_bevy::interop::signal_names::{BaseButtonSignals, OptionButtonSignals};
 use godot_bevy::prelude::*;
+use derive_more::Display;
 
-/// Predefined resolutions offered by the settings screen. This is the single
-/// source of truth for the built-in choices: the `ResolutionOption` dropdown is
-/// filled from here at startup (see `populate_resolutions`), so the scene itself
-/// carries no items. The window's current resolution is appended at startup if
-/// it isn't already one of these.
-const RESOLUTIONS: [(i32, i32); 3] = [(1280, 720), (1920, 1080), (2560, 1440)];
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Display)]
+#[display("{width} x {height}")]
+pub struct SceneResolution {
+    width: i32,
+    height: i32,
+}
+
+impl SceneResolution {
+    pub const RESOLUTIONS: [SceneResolution; 3] = [SceneResolution::new(1280, 720), SceneResolution::new(1920, 1080), SceneResolution::new(2560, 1440)];
+    pub const fn new(width: i32, height: i32) -> Self {
+        Self { width, height }
+    }
+    pub fn get_width(&self) -> i32 {
+        self.width
+    }
+    pub fn get_height(&self) -> i32 {
+        self.height
+    }
+    pub fn to_tuple(&self) -> (i32, i32) {
+        (self.width, self.height)
+    }
+}
 
 #[derive(Resource, Default)]
 pub struct SettingsAssets {
@@ -34,7 +51,7 @@ pub struct SettingsAssets {
     /// The resolutions actually shown in the dropdown, in display order. Built
     /// at startup from `RESOLUTIONS` plus the current window resolution; the
     /// `item_selected` index maps directly into this list.
-    pub resolutions: Vec<(i32, i32)>,
+    pub resolutions: Vec<SceneResolution>,
 }
 
 pub struct SettingsMenuPlugin;
@@ -112,17 +129,17 @@ fn populate_resolutions(mut assets: ResMut<SettingsAssets>, mut godot: GodotAcce
         return;
     };
 
-    let mut resolutions = RESOLUTIONS.to_vec();
+    let mut resolutions = SceneResolution::RESOLUTIONS.to_vec();
     let current = DisplayServer::singleton().window_get_size();
-    let current = (current.x, current.y);
+    let current = SceneResolution::new(current.x, current.y);
     let selected = resolutions.iter().position(|&r| r == current).unwrap_or_else(|| {
         resolutions.push(current);
         resolutions.len() - 1
     });
 
     option.clear();
-    for (width, height) in &resolutions {
-        option.add_item(format!("{width} x {height}").as_str());
+    for resolution in &resolutions {
+        option.add_item(resolution.to_string().as_str());
     }
     // `select` only updates the shown item; it does not emit `item_selected`,
     // so this does not trigger a resolution change on startup.
@@ -178,8 +195,8 @@ fn on_resolution_selected(
     assets: Res<SettingsAssets>,
     mut window_commands: MessageWriter<WindowCommand>,
 ) {
-    if let Some(&(width, height)) = assets.resolutions.get(trigger.index as usize) {
-        window_commands.write(WindowCommand::SetResolution { width, height });
+    if let Some(resolution) = assets.resolutions.get(trigger.index as usize) {
+        window_commands.write(WindowCommand::SetResolution { resolution: *resolution });
     }
 }
 
