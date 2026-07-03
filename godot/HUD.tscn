@@ -1,0 +1,112 @@
+[gd_scene load_steps=4 format=3 uid="uid://xq8sasqhe644"]
+
+[ext_resource type="Theme" uid="uid://cr58i1w2g35rr" path="res://HUD_Theme.tres" id="1_k5de2"]
+
+[sub_resource type="Theme" id="Theme_efote"]
+
+[sub_resource type="Theme" id="Theme_k5de2"]
+
+[node name="Menu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MainPanel" type="VBoxContainer" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -57.5
+offset_top = -40.0
+offset_right = 57.5
+offset_bottom = 60.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label" parent="MainPanel"]
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+text = "Game Title"
+horizontal_alignment = 1
+
+[node name="StartBtn" type="Button" parent="MainPanel"]
+layout_mode = 2
+theme = ExtResource("1_k5de2")
+text = "Start"
+
+[node name="SettingsBtn" type="Button" parent="MainPanel"]
+layout_mode = 2
+theme = SubResource("Theme_efote")
+text = "Settings"
+
+[node name="ExitBtn" type="Button" parent="MainPanel"]
+layout_mode = 2
+theme = SubResource("Theme_efote")
+text = "Exit"
+
+[node name="SettingsPanel" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -80.0
+offset_top = -50.0
+offset_right = 80.0
+offset_bottom = 50.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Title" type="Label" parent="SettingsPanel"]
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+theme = SubResource("Theme_k5de2")
+text = "Options"
+horizontal_alignment = 1
+
+[node name="TabContainer" type="TabContainer" parent="SettingsPanel"]
+layout_mode = 2
+theme = SubResource("Theme_k5de2")
+tab_alignment = 1
+current_tab = 0
+clip_tabs = false
+
+[node name="Display" type="VBoxContainer" parent="SettingsPanel/TabContainer"]
+layout_mode = 2
+theme = SubResource("Theme_k5de2")
+metadata/_tab_index = 0
+
+[node name="Resolution" type="HBoxContainer" parent="SettingsPanel/TabContainer/Display"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+theme = SubResource("Theme_k5de2")
+
+[node name="Label" type="Label" parent="SettingsPanel/TabContainer/Display/Resolution"]
+layout_mode = 2
+text = "Resolution: "
+
+[node name="OptionDropdown" type="OptionButton" parent="SettingsPanel/TabContainer/Display/Resolution"]
+layout_mode = 2
+
+[node name="Test" type="BoxContainer" parent="SettingsPanel/TabContainer"]
+visible = false
+layout_mode = 2
+theme = SubResource("Theme_k5de2")
+metadata/_tab_index = 1
+
+[node name="Label" type="Label" parent="SettingsPanel/TabContainer/Test"]
+layout_mode = 2
+theme = SubResource("Theme_k5de2")
+text = "Hi there"
+
+[node name="BackBtn" type="Button" parent="SettingsPanel"]
+layout_mode = 2
+theme = SubResource("Theme_k5de2")
+text = "Back"

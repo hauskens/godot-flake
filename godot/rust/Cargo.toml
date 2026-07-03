@@ -1,0 +1,17 @@
+[package]
+name = "godot_template"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+bevy = { version = "0.18", default-features = false, features = ["bevy_state", "bevy_asset", "bevy_log"] }
+godot = "0.4.5"
+godot-bevy = { version = "0.11.0", features = ["default"] }
+cargo-godot-lib = "0.2.0"
+bevy_asset_loader = "0.26"
+
+[workspace]
+# Empty workspace table to make this a standalone project
