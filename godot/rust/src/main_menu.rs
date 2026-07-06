@@ -20,7 +20,6 @@ use godot_bevy::prelude::*;
 
 #[derive(Resource, Default)]
 pub struct MenuAssets {
-    pub message_label: Option<GodotNodeHandle>,
     pub start_button: Option<GodotNodeHandle>,
     pub settings_button: Option<GodotNodeHandle>,
     pub exit_button: Option<GodotNodeHandle>,
@@ -52,16 +51,13 @@ pub struct MenuUi {
     #[node("MainPanel")]
     pub panel: GodotNodeHandle,
 
-    #[node("MainPanel/Label")]
-    pub message_label: GodotNodeHandle,
-
-    #[node("MainPanel/StartBtn")]
+    #[node("MainPanel/BtnGroup/StartBtn")]
     pub start_button: GodotNodeHandle,
 
-    #[node("MainPanel/SettingsBtn")]
+    #[node("MainPanel/BtnGroup/SettingsBtn")]
     pub settings_button: GodotNodeHandle,
 
-    #[node("MainPanel/ExitBtn")]
+    #[node("MainPanel/BtnGroup/ExitBtn")]
     pub exit_button: GodotNodeHandle,
 }
 
@@ -76,9 +72,7 @@ fn init_menu_assets(
                 // The command system toggles the panel and writes label text by
                 // element id, so it needs these handles too.
                 ui_handles.main_panel = Some(menu_ui.panel);
-                ui_handles.message_label = Some(menu_ui.message_label);
 
-                menu_assets.message_label = Some(menu_ui.message_label);
                 menu_assets.start_button = Some(menu_ui.start_button);
                 menu_assets.settings_button = Some(menu_ui.settings_button);
                 menu_assets.exit_button = Some(menu_ui.exit_button);

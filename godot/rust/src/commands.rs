@@ -12,12 +12,8 @@ use crate::settings_menu::SceneResolution;
 /// Commands for UI operations
 #[derive(Message, Debug, Clone)]
 pub enum UICommand {
-    /// Set text on a UI element
-    SetText { target: UIElement, text: String },
     /// Set visibility of a UI element
     SetVisible { target: UIElement, visible: bool },
-    /// Show a temporary message
-    ShowMessage { text: String },
 }
 
 /// Commands for the game window / display.
@@ -33,8 +29,6 @@ pub enum NodeCommand {
     /// Set visibility of any node
     #[allow(dead_code)]
     SetVisible { entity: Entity, visible: bool },
-    /// Destroy a node
-    Destroy { entity: Entity },
     /// Set position of a node
     #[allow(dead_code)]
     SetPosition { entity: Entity, position: Vector2 },
@@ -48,7 +42,6 @@ pub enum UIElement {
     MainPanel,
     /// Root panel of the settings screen.
     SettingsPanel,
-    MessageLabel,
 }
 
 /// Resource to hold UI element handles
@@ -56,7 +49,6 @@ pub enum UIElement {
 pub struct UIHandles {
     pub main_panel: Option<GodotNodeHandle>,
     pub settings_panel: Option<GodotNodeHandle>,
-    pub message_label: Option<GodotNodeHandle>,
 }
 
 impl UIHandles {
@@ -64,7 +56,6 @@ impl UIHandles {
         match element {
             UIElement::MainPanel => self.main_panel,
             UIElement::SettingsPanel => self.settings_panel,
-            UIElement::MessageLabel => self.message_label,
         }
     }
 }
@@ -96,17 +87,10 @@ fn process_ui_commands(
     ui_handles: Res<UIHandles>,
     mut godot: GodotAccess,
 ) {
-    use godot::classes::{CanvasItem, Label};
+    use godot::classes::CanvasItem;
 
     for command in ui_commands.read() {
         match command {
-            UICommand::SetText { target, text } => {
-                if let Some(handle) = ui_handles.get_handle(target)
-                    && let Some(mut label) = godot.try_get::<Label>(handle)
-                {
-                    label.set_text(text);
-                }
-            }
             UICommand::SetVisible { target, visible } => {
                 // `CanvasItem` is the common base of panels, buttons and labels,
                 // so this toggles whole screens as well as individual widgets.
@@ -114,13 +98,6 @@ fn process_ui_commands(
                     && let Some(mut item) = godot.try_get::<CanvasItem>(handle)
                 {
                     item.set_visible(*visible);
-                }
-            }
-            UICommand::ShowMessage { text } => {
-                if let Some(handle) = ui_handles.get_handle(&UIElement::MessageLabel)
-                    && let Some(mut label) = godot.try_get::<Label>(handle)
-                {
-                    label.set_text(text);
                 }
             }
         }
@@ -150,10 +127,9 @@ fn process_window_commands(
 fn process_node_commands(
     mut node_commands: MessageReader<NodeCommand>,
     nodes: Query<&GodotNodeHandle>,
-    mut commands: Commands,
     mut godot: GodotAccess,
 ) {
-    use godot::classes::{CanvasItem, Node};
+    use godot::classes::CanvasItem;
 
     for command in node_commands.read() {
         match command {
@@ -163,14 +139,6 @@ fn process_node_commands(
                 {
                     canvas_item.set_visible(*visible);
                 }
-            }
-            NodeCommand::Destroy { entity } => {
-                if let Ok(handle) = nodes.get(*entity)
-                    && let Some(mut node) = godot.try_get::<Node>(*handle)
-                {
-                    node.queue_free();
-                }
-                commands.entity(*entity).despawn();
             }
             NodeCommand::SetPosition { entity, position } => {
                 if let Ok(handle) = nodes.get(*entity)

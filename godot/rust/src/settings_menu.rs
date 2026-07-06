@@ -38,7 +38,7 @@ impl SceneResolution {
     pub fn get_height(&self) -> i32 {
         self.height
     }
-    pub fn to_tuple(&self) -> (i32, i32) {
+    pub fn _to_tuple(&self) -> (i32, i32) {
         (self.width, self.height)
     }
 }
