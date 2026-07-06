@@ -34,7 +34,6 @@ pub enum NodeCommand {
     SetPosition { entity: Entity, position: Vector2 },
 }
 
-
 /// UI element identifiers
 #[derive(Debug, Clone, PartialEq)]
 pub enum UIElement {
@@ -116,7 +115,10 @@ fn process_window_commands(
         match command {
             WindowCommand::SetResolution { resolution } => {
                 if let Some(mut window) = scene_tree.get().get_root() {
-                    window.set_size(Vector2i::new(resolution.get_width(), resolution.get_height()));
+                    window.set_size(Vector2i::new(
+                        resolution.get_width(),
+                        resolution.get_height(),
+                    ));
                 }
             }
         }
@@ -150,4 +152,3 @@ fn process_node_commands(
         }
     }
 }
-

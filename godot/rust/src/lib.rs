@@ -1,17 +1,18 @@
 use bevy::{prelude::*, state::app::StatesPlugin};
+use bevy_asset_loader::prelude::*;
 use godot_bevy::prelude::{
     GodotDefaultPlugins,
     godot_prelude::{ExtensionLibrary, gdextension},
     *,
 };
-use bevy_asset_loader::prelude::*;
 
 use crate::game_settings::GameSettingsPlugin;
 
+mod audio;
 mod commands;
+mod game_settings;
 mod main_menu;
 mod settings_menu;
-mod game_settings;
 
 #[bevy_app]
 fn build_app(app: &mut App) {
@@ -30,7 +31,8 @@ fn build_app(app: &mut App) {
         .add_loading_state(LoadingState::new(GameState::Loading).continue_to_state(GameState::Menu))
         .add_plugins(commands::CommandSystemPlugin)
         .add_plugins(main_menu::MainMenuPlugin)
-        .add_plugins(settings_menu::SettingsMenuPlugin);
+        .add_plugins(settings_menu::SettingsMenuPlugin)
+        .add_plugins(audio::AudioPlugin);
 }
 
 // fn hello_world_system(mut timer: Local<f32>, time: Res<Time>) {

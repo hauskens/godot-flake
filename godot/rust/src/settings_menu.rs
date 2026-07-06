@@ -1,6 +1,8 @@
+use crate::audio::PlaySfxMessage;
 use crate::{
     GameState, MenuState,
-    commands::{UICommand, UIElement, UIHandles, WindowCommand}, game_settings::{GameSettings, Volume},
+    commands::{UICommand, UIElement, UIHandles, WindowCommand},
+    game_settings::{GameSettings, Volume},
 };
 use bevy::{
     app::{App, Plugin},
@@ -14,11 +16,11 @@ use bevy::{
     },
     state::state::{NextState, OnEnter, OnExit},
 };
-use godot::{global::{godot_error, godot_print}};
+use derive_more::Display;
+use godot::global::{godot_error, godot_print};
 use godot::obj::Singleton;
 use godot_bevy::interop::signal_names::{BaseButtonSignals, OptionButtonSignals};
 use godot_bevy::prelude::*;
-use derive_more::Display;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Display)]
 #[display("{width} x {height}")]
@@ -28,7 +30,11 @@ pub struct SceneResolution {
 }
 
 impl SceneResolution {
-    pub const RESOLUTIONS: [SceneResolution; 3] = [SceneResolution::new(1280, 720), SceneResolution::new(1920, 1080), SceneResolution::new(2560, 1440)];
+    pub const RESOLUTIONS: [SceneResolution; 3] = [
+        SceneResolution::new(1280, 720),
+        SceneResolution::new(1920, 1080),
+        SceneResolution::new(2560, 1440),
+    ];
     pub const fn new(width: i32, height: i32) -> Self {
         Self { width, height }
     }
@@ -43,13 +49,13 @@ impl SceneResolution {
     }
 }
 
-
-
 #[derive(Resource, Default)]
 pub struct SettingsAssets {
     pub panel: Option<GodotNodeHandle>,
     pub resolution_option: Option<GodotNodeHandle>,
     pub master_volume_slider: Option<GodotNodeHandle>,
+    pub music_volume_slider: Option<GodotNodeHandle>,
+    pub sfx_volume_slider: Option<GodotNodeHandle>,
     pub back_button: Option<GodotNodeHandle>,
     pub save_button: Option<GodotNodeHandle>,
     pub load_button: Option<GodotNodeHandle>,
@@ -66,6 +72,8 @@ impl Plugin for SettingsMenuPlugin {
             .add_plugins(GodotSignalsPlugin::<BackToMainRequested>::default())
             .add_plugins(GodotSignalsPlugin::<ResolutionSelected>::default())
             .add_plugins(GodotSignalsPlugin::<MasterVolumeChanged>::default())
+            .add_plugins(GodotSignalsPlugin::<MusicVolumeChanged>::default())
+            .add_plugins(GodotSignalsPlugin::<SfxVolumeChanged>::default())
             .add_plugins(GodotSignalsPlugin::<SaveSettingsRequested>::default())
             .add_plugins(GodotSignalsPlugin::<LoadSettingsRequested>::default())
             // Same one-shot init/connect pattern as the main menu: the settings
@@ -83,6 +91,8 @@ impl Plugin for SettingsMenuPlugin {
             .add_observer(on_save_settings_requested)
             .add_observer(on_load_settings_requested)
             .add_observer(on_master_volume_changed)
+            .add_observer(on_music_volume_changed)
+            .add_observer(on_sfx_volume_changed)
             .add_systems(OnEnter(MenuState::Settings), show_settings_panel)
             .add_systems(OnExit(MenuState::Settings), hide_settings_panel);
     }
@@ -98,6 +108,12 @@ pub struct SettingsUi {
 
     #[node("SettingsPanel/TabContainer/Audio/Volumes/MasterVolume/HSlider")]
     pub master_volume_slider: GodotNodeHandle,
+
+    #[node("SettingsPanel/TabContainer/Audio/Volumes/MusicVolume/HSlider")]
+    pub music_volume_slider: GodotNodeHandle,
+
+    #[node("SettingsPanel/TabContainer/Audio/Volumes/SFXVolume/HSlider")]
+    pub sfx_volume_slider: GodotNodeHandle,
 
     #[node("SettingsPanel/Nav/BackBtn")]
     pub back_button: GodotNodeHandle,
@@ -122,6 +138,8 @@ fn init_settings_assets(
                 assets.panel = Some(ui.panel);
                 assets.resolution_option = Some(ui.resolution_option);
                 assets.master_volume_slider = Some(ui.master_volume_slider);
+                assets.music_volume_slider = Some(ui.music_volume_slider);
+                assets.sfx_volume_slider = Some(ui.sfx_volume_slider);
                 assets.back_button = Some(ui.back_button);
                 assets.save_button = Some(ui.save_button);
                 assets.load_button = Some(ui.load_button);
@@ -155,10 +173,13 @@ fn populate_resolutions(mut assets: ResMut<SettingsAssets>, mut godot: GodotAcce
     let mut resolutions = SceneResolution::RESOLUTIONS.to_vec();
     let current = DisplayServer::singleton().window_get_size();
     let current = SceneResolution::new(current.x, current.y);
-    let selected = resolutions.iter().position(|&r| r == current).unwrap_or_else(|| {
-        resolutions.push(current);
-        resolutions.len() - 1
-    });
+    let selected = resolutions
+        .iter()
+        .position(|&r| r == current)
+        .unwrap_or_else(|| {
+            resolutions.push(current);
+            resolutions.len() - 1
+        });
 
     option.clear();
     for resolution in &resolutions {
@@ -182,7 +203,14 @@ struct ResolutionSelected {
 struct MasterVolumeChanged {
     volume: Volume,
 }
-
+#[derive(Event, Debug, Clone)]
+struct MusicVolumeChanged {
+    volume: Volume,
+}
+#[derive(Event, Debug, Clone)]
+struct SfxVolumeChanged {
+    volume: Volume,
+}
 #[derive(Event, Debug, Clone)]
 struct SaveSettingsRequested;
 
@@ -194,8 +222,11 @@ fn connect_settings(
     signal_back: GodotSignals<BackToMainRequested>,
     signal_resolution: GodotSignals<ResolutionSelected>,
     signal_master_volume: GodotSignals<MasterVolumeChanged>,
+    signal_music_volume: GodotSignals<MusicVolumeChanged>,
+    signal_sfx_volume: GodotSignals<SfxVolumeChanged>,
     signal_load: GodotSignals<LoadSettingsRequested>,
     signal_save: GodotSignals<SaveSettingsRequested>,
+    signal_play_test_sound: GodotSignals<PlaySfxMessage>,
 ) {
     if let Some(handle) = assets.back_button {
         signal_back.connect(
@@ -218,17 +249,77 @@ fn connect_settings(
         );
     }
     if let Some(handle) = assets.master_volume_slider {
+        signal_play_test_sound.connect(
+            handle,
+            SliderSignals::DRAG_ENDED,
+            None,
+            |_args, _node_handle, _ent| Some(PlaySfxMessage::TestSound),
+        );
         signal_master_volume.connect(
             handle,
             RangeSignals::VALUE_CHANGED,
             None,
             |args, _node_handle, _ent| {
-                let raw_slider_value = args
-                    .first()
-                    .and_then(|v| v.try_to::<f64>().ok());
+                let raw_slider_value = args.first().and_then(|v| v.try_to::<f64>().ok());
                 if let Some(volume) = raw_slider_value {
                     match volume.try_into() {
                         Ok(volume) => Some(MasterVolumeChanged { volume }),
+                        Err(e) => {
+                            godot_error!("Failed to convert volume to Volume: {}", e);
+                            None
+                        }
+                    }
+                } else {
+                    godot_error!("Failed to convert volume to f64");
+                    None
+                }
+            },
+        );
+    }
+    if let Some(handle) = assets.music_volume_slider {
+        signal_play_test_sound.connect(
+            handle,
+            SliderSignals::DRAG_ENDED,
+            None,
+            |_args, _node_handle, _ent| Some(PlaySfxMessage::TestSound),
+        );
+        signal_music_volume.connect(
+            handle,
+            RangeSignals::VALUE_CHANGED,
+            None,
+            |args, _node_handle, _ent| {
+                let raw_slider_value = args.first().and_then(|v| v.try_to::<f64>().ok());
+                if let Some(volume) = raw_slider_value {
+                    match volume.try_into() {
+                        Ok(volume) => Some(MusicVolumeChanged { volume }),
+                        Err(e) => {
+                            godot_error!("Failed to convert volume to Volume: {}", e);
+                            None
+                        }
+                    }
+                } else {
+                    godot_error!("Failed to convert volume to f64");
+                    None
+                }
+            },
+        );
+    }
+    if let Some(handle) = assets.sfx_volume_slider {
+        signal_play_test_sound.connect(
+            handle,
+            SliderSignals::DRAG_ENDED,
+            None,
+            |_args, _node_handle, _ent| Some(PlaySfxMessage::TestSound),
+        );
+        signal_sfx_volume.connect(
+            handle,
+            RangeSignals::VALUE_CHANGED,
+            None,
+            |args, _node_handle, _ent| {
+                let raw_slider_value = args.first().and_then(|v| v.try_to::<f64>().ok());
+                if let Some(volume) = raw_slider_value {
+                    match volume.try_into() {
+                        Ok(volume) => Some(SfxVolumeChanged { volume }),
                         Err(e) => {
                             godot_error!("Failed to convert volume to Volume: {}", e);
                             None
@@ -272,7 +363,9 @@ fn on_resolution_selected(
     mut window_commands: MessageWriter<WindowCommand>,
 ) {
     if let Some(resolution) = assets.resolutions.get(trigger.index as usize) {
-        window_commands.write(WindowCommand::SetResolution { resolution: *resolution });
+        window_commands.write(WindowCommand::SetResolution {
+            resolution: *resolution,
+        });
     }
 }
 
@@ -301,6 +394,21 @@ fn on_master_volume_changed(
 ) {
     let mut volume_settings = game_settings.get_volume_settings().clone();
     volume_settings.set_master_volume(trigger.volume);
+    game_settings.set_volume_settings(volume_settings);
+}
+
+fn on_music_volume_changed(
+    trigger: On<MusicVolumeChanged>,
+    mut game_settings: ResMut<GameSettings>,
+) {
+    let mut volume_settings = game_settings.get_volume_settings().clone();
+    volume_settings.set_music_volume(trigger.volume);
+    game_settings.set_volume_settings(volume_settings);
+}
+
+fn on_sfx_volume_changed(trigger: On<SfxVolumeChanged>, mut game_settings: ResMut<GameSettings>) {
+    let mut volume_settings = game_settings.get_volume_settings().clone();
+    volume_settings.set_sfx_volume(trigger.volume);
     game_settings.set_volume_settings(volume_settings);
 }
 

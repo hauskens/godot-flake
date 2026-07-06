@@ -12,9 +12,10 @@ use bevy::{
         schedule::IntoScheduleConfigs,
         system::{Res, ResMut},
     },
+    log::error,
+    log::info,
     state::state::{NextState, OnEnter, OnExit, State},
 };
-use godot::global::{godot_error, godot_print};
 use godot_bevy::interop::signal_names::BaseButtonSignals;
 use godot_bevy::prelude::*;
 
@@ -78,14 +79,14 @@ fn init_menu_assets(
                 menu_assets.exit_button = Some(menu_ui.exit_button);
             }
             Err(e) => {
-                godot_error!(
+                error!(
                     "Error initializing menu assets, check for missing nodes in menu scene: {}",
                     e
                 );
             }
         },
         None => {
-            godot_error!("No scene root found");
+            error!("No scene root found");
         }
     }
 }
@@ -137,6 +138,7 @@ fn on_start_game_requested(
     mut game_state: ResMut<NextState<GameState>>,
 ) {
     if menu_state.is_some_and(|s| *s.get() == MenuState::Main) {
+        info!("Starting game");
         game_state.set(GameState::InGame);
     }
 }
@@ -149,7 +151,7 @@ fn on_open_settings_requested(
 }
 
 fn on_exit_game_requested(_trigger: On<ExitGameRequested>, mut scene_tree: SceneTreeRef) {
-    godot_print!("Quitting game");
+    info!("Quitting game");
     scene_tree.get().quit();
 }
 

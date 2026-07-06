@@ -1,11 +1,18 @@
 use bevy::ecs::resource::Resource;
-use bevy::{app::{App, Plugin}, prelude::*};
-use godot::global::godot_error;
+use bevy::{
+    app::{App, Plugin},
+    prelude::*,
+};
+use derive_more::{AsRef, Deref, Display};
 use godot::{
-    classes::ConfigFile, global::godot_print, meta::ToGodot, obj::{Gd, NewGd}, register::GodotConvert
+    classes::ConfigFile,
+    meta::ToGodot,
+    obj::{Gd, NewGd},
+    register::GodotConvert,
 };
 use thiserror::Error;
-use derive_more::{Display, AsRef, Deref};
+
+use crate::audio::Gain;
 
 const SETTINGS_PATH: &str = "user://settings.cfg";
 
@@ -20,13 +27,11 @@ impl Plugin for GameSettingsPlugin {
                 // Fail early: a corrupt/invalid settings file should abort
                 // startup rather than boot with a missing GameSettings
                 // resource (which would panic later, far from the cause).
-                godot_error!("Failed to load game settings: {}", e);
-                panic!("Failed to load game settings: {e}");
+                error!("Failed to load game settings: {}", e);
             }
         }
     }
 }
-
 
 #[derive(Default, Resource)]
 pub struct GameSettings {
@@ -59,9 +64,23 @@ impl GameSettings {
         config.load(SETTINGS_PATH);
 
         let volume = &self.volume_settings;
-        config.set_value(VolumeSettings::SETTINGS_SECTION, "master_volume", &(*volume.get_master_volume()).to_variant());
-        config.set_value(VolumeSettings::SETTINGS_SECTION, "music_volume", &(*volume.get_music_volume()).to_variant());
-        config.set_value(VolumeSettings::SETTINGS_SECTION, "sfx_volume", &(*volume.get_sfx_volume()).to_variant());
+        config.set_value(
+            VolumeSettings::SETTINGS_SECTION,
+            "master_volume",
+            &(*volume.get_master_volume()).to_variant(),
+        );
+        config.set_value(
+            VolumeSettings::SETTINGS_SECTION,
+            "music_volume",
+            &(*volume.get_music_volume()).to_variant(),
+        );
+        config.set_value(
+            VolumeSettings::SETTINGS_SECTION,
+            "sfx_volume",
+            &(*volume.get_sfx_volume()).to_variant(),
+        );
+
+        info!("Saving settings to {}", SETTINGS_PATH);
 
         config.save(SETTINGS_PATH);
     }
@@ -81,11 +100,10 @@ impl GameSettings {
             load_volume(&config, "sfx_volume", defaults.get_sfx_volume())?,
         );
 
-        godot_print!("Loaded volume settings: {:?}", volume_settings);
+        info!("Loaded volume settings: {:?}", volume_settings);
         Ok(Self { volume_settings })
     }
 }
-
 
 fn load_volume(
     config: &Gd<ConfigFile>,
@@ -99,14 +117,15 @@ fn load_volume(
     let value = config
         .get_value(VolumeSettings::SETTINGS_SECTION, key)
         .try_to::<f64>()
-        .map_err(|_| GameSettingsError::WrongType { key: key.to_owned() })?;
+        .map_err(|_| GameSettingsError::WrongType {
+            key: key.to_owned(),
+        })?;
 
     Volume::try_from(value).map_err(|source| GameSettingsError::InvalidVolume {
         key: key.to_owned(),
         source,
     })
 }
-
 
 #[derive(Clone, Copy, PartialEq, Debug, Display, AsRef, Deref, GodotConvert)]
 #[godot(transparent)]
@@ -161,7 +180,11 @@ pub struct VolumeSettings {
 impl VolumeSettings {
     pub const SETTINGS_SECTION: &str = "audio";
     pub fn new(master_volume: Volume, music_volume: Volume, sfx_volume: Volume) -> Self {
-        Self { master_volume, music_volume, sfx_volume }
+        Self {
+            master_volume,
+            music_volume,
+            sfx_volume,
+        }
     }
     pub fn get_master_volume(&self) -> Volume {
         self.master_volume
@@ -180,5 +203,9 @@ impl VolumeSettings {
     }
     pub fn set_sfx_volume(&mut self, volume: Volume) {
         self.sfx_volume = volume;
+    }
+
+    pub fn sfx_scalar(&self) -> Gain {
+        Gain::new((*self.sfx_volume / Volume::MAX) as f32)
     }
 }
