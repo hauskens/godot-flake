@@ -1,6 +1,6 @@
 use crate::{
     GameState, MenuState,
-    commands::{UICommand, UIElement, UIHandles, WindowCommand},
+    commands::{UICommand, UIElement, UIHandles, WindowCommand}, game_settings::{GameSettings, Volume},
 };
 use bevy::{
     app::{App, Plugin},
@@ -14,7 +14,7 @@ use bevy::{
     },
     state::state::{NextState, OnEnter, OnExit},
 };
-use godot::global::godot_error;
+use godot::{global::{godot_error, godot_print}};
 use godot::obj::Singleton;
 use godot_bevy::interop::signal_names::{BaseButtonSignals, OptionButtonSignals};
 use godot_bevy::prelude::*;
@@ -43,11 +43,16 @@ impl SceneResolution {
     }
 }
 
+
+
 #[derive(Resource, Default)]
 pub struct SettingsAssets {
     pub panel: Option<GodotNodeHandle>,
     pub resolution_option: Option<GodotNodeHandle>,
+    pub master_volume_slider: Option<GodotNodeHandle>,
     pub back_button: Option<GodotNodeHandle>,
+    pub save_button: Option<GodotNodeHandle>,
+    pub load_button: Option<GodotNodeHandle>,
     /// The resolutions actually shown in the dropdown, in display order. Built
     /// at startup from `RESOLUTIONS` plus the current window resolution; the
     /// `item_selected` index maps directly into this list.
@@ -60,6 +65,9 @@ impl Plugin for SettingsMenuPlugin {
         app.init_resource::<SettingsAssets>()
             .add_plugins(GodotSignalsPlugin::<BackToMainRequested>::default())
             .add_plugins(GodotSignalsPlugin::<ResolutionSelected>::default())
+            .add_plugins(GodotSignalsPlugin::<MasterVolumeChanged>::default())
+            .add_plugins(GodotSignalsPlugin::<SaveSettingsRequested>::default())
+            .add_plugins(GodotSignalsPlugin::<LoadSettingsRequested>::default())
             // Same one-shot init/connect pattern as the main menu: the settings
             // panel lives in the same scene and just starts hidden.
             .add_systems(
@@ -72,6 +80,9 @@ impl Plugin for SettingsMenuPlugin {
             )
             .add_observer(on_back_to_main_requested)
             .add_observer(on_resolution_selected)
+            .add_observer(on_save_settings_requested)
+            .add_observer(on_load_settings_requested)
+            .add_observer(on_master_volume_changed)
             .add_systems(OnEnter(MenuState::Settings), show_settings_panel)
             .add_systems(OnExit(MenuState::Settings), hide_settings_panel);
     }
@@ -85,8 +96,17 @@ pub struct SettingsUi {
     #[node("SettingsPanel/TabContainer/Display/Resolution/OptionDropdown")]
     pub resolution_option: GodotNodeHandle,
 
-    #[node("SettingsPanel/BackBtn")]
+    #[node("SettingsPanel/TabContainer/Audio/Volumes/MasterVolume/HSlider")]
+    pub master_volume_slider: GodotNodeHandle,
+
+    #[node("SettingsPanel/Nav/BackBtn")]
     pub back_button: GodotNodeHandle,
+
+    #[node("SettingsPanel/Nav/SaveBtn")]
+    pub save_button: GodotNodeHandle,
+
+    #[node("SettingsPanel/Nav/LoadBtn")]
+    pub load_button: GodotNodeHandle,
 }
 
 fn init_settings_assets(
@@ -101,7 +121,10 @@ fn init_settings_assets(
 
                 assets.panel = Some(ui.panel);
                 assets.resolution_option = Some(ui.resolution_option);
+                assets.master_volume_slider = Some(ui.master_volume_slider);
                 assets.back_button = Some(ui.back_button);
+                assets.save_button = Some(ui.save_button);
+                assets.load_button = Some(ui.load_button);
             }
             Err(e) => {
                 godot_error!(
@@ -155,11 +178,24 @@ struct BackToMainRequested;
 struct ResolutionSelected {
     index: i64,
 }
+#[derive(Event, Debug, Clone)]
+struct MasterVolumeChanged {
+    volume: Volume,
+}
+
+#[derive(Event, Debug, Clone)]
+struct SaveSettingsRequested;
+
+#[derive(Event, Debug, Clone)]
+struct LoadSettingsRequested;
 
 fn connect_settings(
     assets: Res<SettingsAssets>,
     signal_back: GodotSignals<BackToMainRequested>,
     signal_resolution: GodotSignals<ResolutionSelected>,
+    signal_master_volume: GodotSignals<MasterVolumeChanged>,
+    signal_load: GodotSignals<LoadSettingsRequested>,
+    signal_save: GodotSignals<SaveSettingsRequested>,
 ) {
     if let Some(handle) = assets.back_button {
         signal_back.connect(
@@ -181,6 +217,46 @@ fn connect_settings(
             },
         );
     }
+    if let Some(handle) = assets.master_volume_slider {
+        signal_master_volume.connect(
+            handle,
+            RangeSignals::VALUE_CHANGED,
+            None,
+            |args, _node_handle, _ent| {
+                let raw_slider_value = args
+                    .first()
+                    .and_then(|v| v.try_to::<f64>().ok());
+                if let Some(volume) = raw_slider_value {
+                    match volume.try_into() {
+                        Ok(volume) => Some(MasterVolumeChanged { volume }),
+                        Err(e) => {
+                            godot_error!("Failed to convert volume to Volume: {}", e);
+                            None
+                        }
+                    }
+                } else {
+                    godot_error!("Failed to convert volume to f64");
+                    None
+                }
+            },
+        );
+    }
+    if let Some(handle) = assets.load_button {
+        signal_load.connect(
+            handle,
+            BaseButtonSignals::PRESSED,
+            None,
+            |_args, _node_handle, _ent| Some(LoadSettingsRequested),
+        );
+    }
+    if let Some(handle) = assets.save_button {
+        signal_save.connect(
+            handle,
+            BaseButtonSignals::PRESSED,
+            None,
+            |_args, _node_handle, _ent| Some(SaveSettingsRequested),
+        );
+    }
 }
 
 fn on_back_to_main_requested(
@@ -198,6 +274,34 @@ fn on_resolution_selected(
     if let Some(resolution) = assets.resolutions.get(trigger.index as usize) {
         window_commands.write(WindowCommand::SetResolution { resolution: *resolution });
     }
+}
+
+fn on_save_settings_requested(
+    _trigger: On<SaveSettingsRequested>,
+    game_settings: Res<GameSettings>,
+) {
+    godot_print!("Saving settings");
+    game_settings.save_settings();
+}
+
+fn on_load_settings_requested(
+    _trigger: On<LoadSettingsRequested>,
+    mut game_settings: ResMut<GameSettings>,
+) {
+    godot_print!("Loading settings");
+    match GameSettings::load_settings() {
+        Ok(loaded) => *game_settings = loaded,
+        Err(e) => godot_error!("Failed to load settings: {}", e),
+    }
+}
+
+fn on_master_volume_changed(
+    trigger: On<MasterVolumeChanged>,
+    mut game_settings: ResMut<GameSettings>,
+) {
+    let mut volume_settings = game_settings.get_volume_settings().clone();
+    volume_settings.set_master_volume(trigger.volume);
+    game_settings.set_volume_settings(volume_settings);
 }
 
 fn show_settings_panel(mut ui_commands: MessageWriter<UICommand>) {

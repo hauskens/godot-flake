@@ -6,15 +6,19 @@ use godot_bevy::prelude::{
 };
 use bevy_asset_loader::prelude::*;
 
+use crate::game_settings::GameSettingsPlugin;
+
 mod commands;
 mod main_menu;
 mod settings_menu;
+mod game_settings;
 
 #[bevy_app]
 fn build_app(app: &mut App) {
     app.add_plugins(GodotDefaultPlugins)
         .add_plugins(StatesPlugin)
         .init_state::<GameState>()
+        .add_plugins(GameSettingsPlugin)
         // `MenuState` is a sub-state that only exists while `GameState::Menu` is
         // active. Entering the game (or otherwise leaving the menu) drops it
         // automatically, and it resets to `MenuState::Main` the next time we

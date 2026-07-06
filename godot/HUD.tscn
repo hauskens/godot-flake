@@ -11,6 +11,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="MainPanel" type="Control" parent="."]
+visible = false
 layout_mode = 1
 anchor_left = 0.2
 anchor_top = 0.1
@@ -70,7 +71,6 @@ theme = ExtResource("1_k5de2")
 text = "Exit"
 
 [node name="SettingsPanel" type="VBoxContainer" parent="."]
-visible = false
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.2
@@ -95,10 +95,11 @@ size_flags_vertical = 3
 theme = ExtResource("1_k5de2")
 theme_override_constants/tab_separation = 4
 tab_alignment = 1
-current_tab = 0
+current_tab = 1
 clip_tabs = false
 
 [node name="Display" type="VBoxContainer" parent="SettingsPanel/TabContainer"]
+visible = false
 layout_mode = 2
 theme = ExtResource("1_k5de2")
 metadata/_tab_index = 0
@@ -118,7 +119,6 @@ custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 
 [node name="Audio" type="VBoxContainer" parent="SettingsPanel/TabContainer"]
-visible = false
 layout_mode = 2
 theme = ExtResource("1_k5de2")
 metadata/_tab_index = 1
@@ -176,10 +176,31 @@ layout_mode = 2
 theme = ExtResource("1_k5de2")
 value = 50.0
 
-[node name="BackBtn" type="Button" parent="SettingsPanel"]
+[node name="Nav" type="HBoxContainer" parent="SettingsPanel"]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/separation = 10
+
+[node name="BackBtn" type="Button" parent="SettingsPanel/Nav"]
 custom_minimum_size = Vector2(100, 35)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 theme = ExtResource("1_k5de2")
 text = "Back"
+
+[node name="SaveBtn" type="Button" parent="SettingsPanel/Nav"]
+custom_minimum_size = Vector2(100, 35)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme = ExtResource("1_k5de2")
+text = "Save"
+
+[node name="LoadBtn" type="Button" parent="SettingsPanel/Nav"]
+custom_minimum_size = Vector2(100, 35)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme = ExtResource("1_k5de2")
+text = "Load"
