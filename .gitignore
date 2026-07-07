@@ -4,3 +4,6 @@ result-*
 
 # Ignore automatically generated direnv output
 .direnv
+
+# Godot export templates provisioned by the dev shell (symlinks into the Nix store)
+.export-templates/

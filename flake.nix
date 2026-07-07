@@ -54,7 +54,10 @@
           ];
         in
         {
-          inherit packages formatter;
+          packages = packages // {
+            godot-export-templates = pkgs.godotPackages_4_5.export-templates-bin;
+          };
+          inherit formatter;
 
           devShells.default = pkgs.mkShell {
             name = "bevy-flake-rust-overlay";
@@ -64,6 +67,7 @@
               [
                 # rustToolchain
                 packages.rust-toolchain.develop
+                just # command runner (justfile: `just export-templates`)
                 clang # linker driver for -fuse-ld=mold
                 mold # fast linker (wired in .cargo/config.toml)
                 llvmPackages_latest.bintools # lld fallback + llvm-* tools
@@ -77,6 +81,14 @@
               export LD_LIBRARY_PATH="${pkgs.lib.makeLibraryPath runtimeLibs}:$LD_LIBRARY_PATH"
               export LIBCLANG_PATH="${pkgs.llvmPackages_latest.libclang.lib}/lib"
               export BINDGEN_EXTRA_CLANG_ARGS="-I${pkgs.glibc.dev}/include -I${pkgs.llvmPackages_latest.libclang.lib}/lib/clang/${pkgs.llvmPackages_latest.libclang.version}/include -I${pkgs.glib.dev}/include/glib-2.0 -I${pkgs.glib.out}/lib/glib-2.0/include/"
+
+              # Godot export templates: provisioned on demand (GC-rooted) via `just`.
+              # `just export-templates` builds them into a nix-build out-link
+              # (.export-templates/result) that registers a GC root, then links them
+              # into Godot's data dir so the editor's Export dialog finds them.
+              if [ ! -e .export-templates/result ]; then
+                echo "Godot export templates not provisioned — run: just export-templates"
+              fi
 
               # Deliberately NOT exporting RUSTFLAGS. Setting it would override the ENTIRE
               # .cargo/config.toml rustflags array (cargo reads flags from one source only,
