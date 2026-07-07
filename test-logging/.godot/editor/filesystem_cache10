@@ -1,7 +1,0 @@
-63f7b34db8d8cdea90c76aacccf841ec
-::res://::1769789433
-game_manager.gd::GDScript::8123714184440401399::1769786605::0::1::::<>Node<><>0<>0<><>::
-icon.svg::CompressedTexture2D::3442163749159658656::1769785456::1769785463::1::::<><><>0<>0<>af9c06fb4d9f0f218273d794a4cfb603<>res://.godot/imported/icon.svg-218a8f2b3041327d8a5756f3a245f83b.ctex::
-loki_logger.gd::GDScript::4004228483524947436::1769787259::0::1::::Log<>Logger<><>0<>0<><>::
-test_scene.gd::GDScript::7837696442816260226::1769787358::0::1::::<>Node2D<><>0<>0<><>::
-test_scene.tscn::PackedScene::6466081659505106315::1769787358::0::1::::<><><>0<>0<><>::uid://djwvyk5um4qp3::::res://test_scene.gd
