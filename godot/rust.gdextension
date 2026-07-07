@@ -4,11 +4,11 @@ compatibility_minimum = 4.1
 reloadable = true
 
 [libraries]
-linux.debug.x86_64 = "res://rust/target/debug/libgodot_template.so"
-linux.release.x86_64 = "res://rust/target/release/libgodot_template.so"
-windows.debug.x86_64 = "res://rust/target/debug/godot_template.dll"
-windows.release.x86_64 = "res://rust/target/release/godot_template.dll"
-macos.debug = "res://rust/target/debug/libgodot_template.dylib"
-macos.release = "res://rust/target/release/libgodot_template.dylib"
-macos.debug.arm64 = "res://rust/target/debug/libgodot_template.dylib"
-macos.release.arm64 = "res://rust/target/release/libgodot_template.dylib"
+linux.release.x86_64 =   "res://rust-target/release/libgodot_template.so"
+windows.release.x86_64 = "res://rust-target/release/godot_template.dll"
+macos.release =          "res://rust-target/release/libgodot_template.dylib"
+macos.release.arm64 =    "res://rust-target/release/libgodot_template.dylib"
+linux.debug.x86_64 =     "res://rust-target/debug/libgodot_template.so"
+windows.debug.x86_64 =   "res://rust-target/debug/godot_template.dll"
+macos.debug =            "res://rust-target/debug/libgodot_template.dylib"
+macos.debug.arm64 =      "res://rust-target/debug/libgodot_template.dylib"

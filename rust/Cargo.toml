@@ -6,6 +6,11 @@ edition = "2024"
 [lib]
 crate-type = ["cdylib"]
 
+
+[[bin]]
+path = "run_godot.rs"
+name = "godot_template"
+
 [dependencies]
 bevy = { version = "0.18", default-features = false, features = ["bevy_state", "bevy_asset", "bevy_log"] }
 godot = "0.4.5"
@@ -15,5 +20,5 @@ bevy_asset_loader = "0.26"
 derive_more = { version = "2.1.1", features = ["mul", "as_ref", "deref"] }
 thiserror = "2.0.13"
 
-[workspace]
-# Empty workspace table to make this a standalone project
+[features]
+itest = []
