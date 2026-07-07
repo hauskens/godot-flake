@@ -79,7 +79,7 @@ impl AudioChannelMarker for SfxChannel {
 /// Audio assets loaded via bevy_asset_loader
 #[derive(AssetCollection, Resource, Debug)]
 pub struct GameAudio {
-    #[asset(path = "audio/test_sound.mp3")]
+    #[asset(path = "audio/test_sound.wav")]
     pub test_sound: Handle<GodotResource>,
 }
 

@@ -10,18 +10,30 @@ use godot::{
     obj::{Gd, NewGd},
     register::GodotConvert,
 };
+use godot_bevy::plugins::signals::GodotSignalsPlugin;
 use thiserror::Error;
 
 use crate::audio::Gain;
 
 const SETTINGS_PATH: &str = "user://settings.cfg";
 
+
+#[derive(Event, Debug, Clone)]
+pub struct SaveSettingsRequested;
+
+#[derive(Event, Debug, Clone)]
+pub struct LoadSettingsRequested;
+
 pub struct GameSettingsPlugin;
 impl Plugin for GameSettingsPlugin {
     fn build(&self, app: &mut App) {
         match GameSettings::load_settings() {
             Ok(settings) => {
-                app.insert_resource(settings);
+                app.insert_resource(settings)
+                .add_plugins(GodotSignalsPlugin::<SaveSettingsRequested>::default())
+                .add_plugins(GodotSignalsPlugin::<LoadSettingsRequested>::default())
+                .add_observer(on_save_settings_requested)
+                .add_observer(on_load_settings_requested);
             }
             Err(e) => {
                 // Fail early: a corrupt/invalid settings file should abort
@@ -207,5 +219,24 @@ impl VolumeSettings {
 
     pub fn sfx_scalar(&self) -> Gain {
         Gain::new((*self.sfx_volume / Volume::MAX) as f32)
+    }
+}
+
+fn on_save_settings_requested(
+    _trigger: On<SaveSettingsRequested>,
+    game_settings: Res<GameSettings>,
+) {
+    info!("Saving settings");
+    game_settings.save_settings();
+}
+
+fn on_load_settings_requested(
+    _trigger: On<LoadSettingsRequested>,
+    mut game_settings: ResMut<GameSettings>,
+) {
+    info!("Loading settings");
+    match GameSettings::load_settings() {
+        Ok(loaded) => *game_settings = loaded,
+        Err(e) => error!("Failed to load settings: {}", e),
     }
 }

@@ -198,6 +198,7 @@ theme = ExtResource("1_k5de2")
 text = "Save"
 
 [node name="LoadBtn" type="Button" parent="SettingsPanel/Nav"]
+visible = false
 custom_minimum_size = Vector2(100, 35)
 layout_mode = 2
 size_flags_horizontal = 4

@@ -6,6 +6,7 @@ use crate::{
 };
 use bevy::{
     app::{App, Plugin},
+    log::error,
     ecs::{
         event::Event,
         message::MessageWriter,
@@ -17,10 +18,12 @@ use bevy::{
     state::state::{NextState, OnEnter, OnExit},
 };
 use derive_more::Display;
-use godot::global::{godot_error, godot_print};
+use godot::classes::Slider;
 use godot::obj::Singleton;
 use godot_bevy::interop::signal_names::{BaseButtonSignals, OptionButtonSignals};
 use godot_bevy::prelude::*;
+
+use crate::game_settings::{LoadSettingsRequested, SaveSettingsRequested};
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Display)]
 #[display("{width} x {height}")]
@@ -74,8 +77,6 @@ impl Plugin for SettingsMenuPlugin {
             .add_plugins(GodotSignalsPlugin::<MasterVolumeChanged>::default())
             .add_plugins(GodotSignalsPlugin::<MusicVolumeChanged>::default())
             .add_plugins(GodotSignalsPlugin::<SfxVolumeChanged>::default())
-            .add_plugins(GodotSignalsPlugin::<SaveSettingsRequested>::default())
-            .add_plugins(GodotSignalsPlugin::<LoadSettingsRequested>::default())
             // Same one-shot init/connect pattern as the main menu: the settings
             // panel lives in the same scene and just starts hidden.
             .add_systems(
@@ -83,17 +84,16 @@ impl Plugin for SettingsMenuPlugin {
                 (
                     init_settings_assets,
                     populate_resolutions.after(init_settings_assets),
+                    set_volume_sliders.after(init_settings_assets),
                     connect_settings.after(init_settings_assets),
                 ),
             )
             .add_observer(on_back_to_main_requested)
             .add_observer(on_resolution_selected)
-            .add_observer(on_save_settings_requested)
-            .add_observer(on_load_settings_requested)
             .add_observer(on_master_volume_changed)
             .add_observer(on_music_volume_changed)
             .add_observer(on_sfx_volume_changed)
-            .add_systems(OnEnter(MenuState::Settings), show_settings_panel)
+            .add_systems(OnEnter(MenuState::Settings), (show_settings_panel, set_volume_sliders))
             .add_systems(OnExit(MenuState::Settings), hide_settings_panel);
     }
 }
@@ -128,7 +128,7 @@ pub struct SettingsUi {
 fn init_settings_assets(
     mut assets: ResMut<SettingsAssets>,
     mut ui_handles: ResMut<UIHandles>,
-    mut scene_tree: SceneTreeRef,
+    mut scene_tree: SceneTreeRef
 ) {
     match scene_tree.get().get_current_scene() {
         Some(scene_root) => match SettingsUi::from_node(scene_root) {
@@ -145,14 +145,14 @@ fn init_settings_assets(
                 assets.load_button = Some(ui.load_button);
             }
             Err(e) => {
-                godot_error!(
+                error!(
                     "Error initializing settings assets, check for missing nodes in menu scene: {}",
                     e
                 );
             }
         },
         None => {
-            godot_error!("No scene root found");
+            error!("No scene root found");
         }
     }
 }
@@ -192,6 +192,24 @@ fn populate_resolutions(mut assets: ResMut<SettingsAssets>, mut godot: GodotAcce
     assets.resolutions = resolutions;
 }
 
+fn set_volume_sliders(assets: Res<SettingsAssets>, mut godot: GodotAccess, settings: Res<GameSettings>) {
+    if let Some(handle) = assets.master_volume_slider {
+        if let Some(mut slider) = godot.try_get::<Slider>(handle) {
+            slider.set_value(*settings.get_volume_settings().get_master_volume());
+        }
+    }
+    if let Some(handle) = assets.music_volume_slider {
+        if let Some(mut slider) = godot.try_get::<Slider>(handle) {
+            slider.set_value(*settings.get_volume_settings().get_music_volume());
+        }
+    }
+    if let Some(handle) = assets.sfx_volume_slider {
+        if let Some(mut slider) = godot.try_get::<Slider>(handle) {
+            slider.set_value(*settings.get_volume_settings().get_sfx_volume());
+        }
+    }
+}
+
 #[derive(Event, Debug, Clone)]
 struct BackToMainRequested;
 
@@ -211,11 +229,6 @@ struct MusicVolumeChanged {
 struct SfxVolumeChanged {
     volume: Volume,
 }
-#[derive(Event, Debug, Clone)]
-struct SaveSettingsRequested;
-
-#[derive(Event, Debug, Clone)]
-struct LoadSettingsRequested;
 
 fn connect_settings(
     assets: Res<SettingsAssets>,
@@ -229,6 +242,12 @@ fn connect_settings(
     signal_play_test_sound: GodotSignals<PlaySfxMessage>,
 ) {
     if let Some(handle) = assets.back_button {
+        signal_load.connect(
+            handle,
+            BaseButtonSignals::PRESSED,
+            None,
+            |_args, _node_handle, _ent| Some(LoadSettingsRequested),
+        );
         signal_back.connect(
             handle,
             BaseButtonSignals::PRESSED,
@@ -265,24 +284,18 @@ fn connect_settings(
                     match volume.try_into() {
                         Ok(volume) => Some(MasterVolumeChanged { volume }),
                         Err(e) => {
-                            godot_error!("Failed to convert volume to Volume: {}", e);
+                            error!("Failed to convert volume to Volume: {}", e);
                             None
                         }
                     }
                 } else {
-                    godot_error!("Failed to convert volume to f64");
+                    error!("Failed to convert volume to f64");
                     None
                 }
             },
         );
     }
     if let Some(handle) = assets.music_volume_slider {
-        signal_play_test_sound.connect(
-            handle,
-            SliderSignals::DRAG_ENDED,
-            None,
-            |_args, _node_handle, _ent| Some(PlaySfxMessage::TestSound),
-        );
         signal_music_volume.connect(
             handle,
             RangeSignals::VALUE_CHANGED,
@@ -293,12 +306,12 @@ fn connect_settings(
                     match volume.try_into() {
                         Ok(volume) => Some(MusicVolumeChanged { volume }),
                         Err(e) => {
-                            godot_error!("Failed to convert volume to Volume: {}", e);
+                            error!("Failed to convert volume to Volume: {}", e);
                             None
                         }
                     }
                 } else {
-                    godot_error!("Failed to convert volume to f64");
+                    error!("Failed to convert volume to f64");
                     None
                 }
             },
@@ -321,12 +334,12 @@ fn connect_settings(
                     match volume.try_into() {
                         Ok(volume) => Some(SfxVolumeChanged { volume }),
                         Err(e) => {
-                            godot_error!("Failed to convert volume to Volume: {}", e);
+                            error!("Failed to convert volume to Volume: {}", e);
                             None
                         }
                     }
                 } else {
-                    godot_error!("Failed to convert volume to f64");
+                    error!("Failed to convert volume to f64");
                     None
                 }
             },
@@ -369,24 +382,7 @@ fn on_resolution_selected(
     }
 }
 
-fn on_save_settings_requested(
-    _trigger: On<SaveSettingsRequested>,
-    game_settings: Res<GameSettings>,
-) {
-    godot_print!("Saving settings");
-    game_settings.save_settings();
-}
 
-fn on_load_settings_requested(
-    _trigger: On<LoadSettingsRequested>,
-    mut game_settings: ResMut<GameSettings>,
-) {
-    godot_print!("Loading settings");
-    match GameSettings::load_settings() {
-        Ok(loaded) => *game_settings = loaded,
-        Err(e) => godot_error!("Failed to load settings: {}", e),
-    }
-}
 
 fn on_master_volume_changed(
     trigger: On<MasterVolumeChanged>,
