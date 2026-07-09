@@ -1,8 +1,8 @@
 # Run a crate's godot-bevy integration tests headlessly. The cdylib must be rebuilt
 # with the `itest` feature *before* Godot loads it — `cargo run` alone only rebuilds
 # the launcher, not the .so. Each crate has a single bin, so `cargo run` selects it.
-# Usage: `just itest` (template) or `just itest jam-test/rust`.
-itest crate="games/template/rust":
+# Usage: `just itest` (template) or `just itest integration-tests/rust`.
+itest crate="integration-tests/rust":
     # `ulimit -c 0`: godot-bevy-test can trip a SIGSEGV during Godot's headless
     # shutdown (leaked ObjectDB instances) *after* tests finish; suppress the
     # multi-hundred-MB core dumps it would otherwise drop in the project dir.

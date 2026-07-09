@@ -29,6 +29,16 @@ fn test_settings_defaults_loaded(ctx: &TestContext) -> godot::task::TaskHandle {
                 Volume::default(),
                 "expected default master volume on a fresh project"
             );
+            assert_eq!(
+                settings.get_volume_settings().get_music_volume(),
+                Volume::default(),
+                "expected default music volume on a fresh project"
+            );
+            assert_eq!(
+                settings.get_volume_settings().get_sfx_volume(),
+                Volume::default(),
+                "expected default sfx volume on a fresh project"
+            );
         });
 
         app.cleanup().await;

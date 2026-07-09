@@ -1,9 +1,9 @@
-//! `jam-test` is a game-independent host for the shared jam crates' integration tests.
+//! `integration-tests` is a game-independent host for the shared jam crates' integration tests.
 //!
 //! It is structurally "the template game minus the game": a cdylib whose `#[bevy_app]`
 //! entry point registers no gameplay, plus (under the `itest` feature) the godot-bevy-test
 //! runner and the test modules in [`itest`]. Build/run with `--features itest`, or via
-//! `just itest jam-test/rust`.
+//! `just itest integration-tests/rust`.
 
 use bevy::prelude::*;
 use godot_bevy::prelude::{
@@ -16,7 +16,7 @@ use jam_core::CorePlugin;
 use jam_menu::{MainMenuPlugin, SettingsMenuPlugin};
 use jam_settings::GameSettingsPlugin;
 
-// No game here: jam-test only hosts integration tests. `#[bevy_app]` still provides the
+// No game here: integration-tests only hosts integration tests. `#[bevy_app]` still provides the
 // sole gdextension entry point (`gdext_rust_init`), but its init func is empty so the
 // `BevyAppSingleton` autoload stays idle — `TestApp` drives each test (see
 // `itest::setup_game`). This also avoids the autoload installing a global tracing

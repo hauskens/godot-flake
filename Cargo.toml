@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["crates/*", "games/*/rust", "jam-test/rust"]
+members = ["crates/*", "games/*/rust", "integration-tests/rust"]
 
 # Single source of truth for the versions every crate in the monorepo shares.
 # Games and shared crates all inherit these via `{ workspace = true }`. Keeping

@@ -1,6 +1,6 @@
 // Source: https://github.com/bytemeadow/godot-bevy/blob/main/examples/run_godot.rs
 //
-// jam-test has no game to run, so the non-itest binary just launches the (empty)
+// integration-tests has no game to run, so the non-itest binary just launches the (empty)
 // extension in the accompanying Godot project. The real entry point is `--features
 // itest`, which runs the integration tests for the shared jam crates.
 #[cfg(not(feature = "itest"))]

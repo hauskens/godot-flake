@@ -1,5 +1,5 @@
 //! Integration tests for the shared jam crates, run inside Godot headless via
-//! `TestRunner.tscn` (see `run_godot.rs`, `just itest jam-test/rust`).
+//! `TestRunner.tscn` (see `run_godot.rs`, `just itest integration-tests/rust`).
 //!
 //! Tests are split per crate to show each plugin works in isolation, plus a full-stack
 //! module that boots them together. `#[itest]` registers into a global registry, so the

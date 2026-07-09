@@ -1988,6 +1988,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "integration-tests"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "cargo-godot-lib",
+ "godot",
+ "godot-bevy",
+ "godot-bevy-test",
+ "jam-audio",
+ "jam-core",
+ "jam-menu",
+ "jam-settings",
+]
+
+[[package]]
 name = "inventory"
 version = "0.3.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2056,21 +2071,6 @@ dependencies = [
  "godot-bevy",
  "jam-core",
  "thiserror 2.0.18",
-]
-
-[[package]]
-name = "jam-test"
-version = "0.1.0"
-dependencies = [
- "bevy",
- "cargo-godot-lib",
- "godot",
- "godot-bevy",
- "godot-bevy-test",
- "jam-audio",
- "jam-core",
- "jam-menu",
- "jam-settings",
 ]
 
 [[package]]

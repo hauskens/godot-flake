@@ -1,5 +1,5 @@
 [package]
-name = "jam-test"
+name = "integration-tests"
 version = "0.1.0"
 edition = "2024"
 
@@ -8,7 +8,7 @@ crate-type = ["cdylib"]
 
 [[bin]]
 path = "run_godot.rs"
-name = "run_jam_test"
+name = "run_integration_tests"
 
 [dependencies]
 bevy.workspace = true

@@ -94,6 +94,29 @@ fn test_settings_button_opens_settings(ctx: &TestContext) -> godot::task::TaskHa
         // Reach the menu so `connect_buttons` (OnExit(Loading)) has wired the signal.
         app.updates(10).await;
 
+        let main_panel = hud.get_node_as::<Control>("MainPanel");
+        assert!(
+            main_panel.is_visible(),
+            "expected MainPanel to be visible before clicking Settings"
+        );
+
+        let settings_panel = hud.get_node_as::<Control>("SettingsPanel");
+        assert!(
+            !settings_panel.is_visible(),
+            "expected SettingsPanel to be hidden before we have clicked the settings button"
+        );
+
+        app.with_world(|world| {
+            let menu_state = world
+                .get_resource::<State<MenuState>>()
+                .map(|s| s.get().clone());
+            assert_eq!(
+                menu_state,
+                Some(MenuState::Main),
+                "expected MenuState::Main after clicking Settings, got {menu_state:?}"
+            );
+        });
+
         // Simulate the click by emitting the button's `pressed` signal.
         let mut settings_btn = hud.get_node_as::<Button>("MainPanel/BtnGroup/SettingsBtn");
         settings_btn.emit_signal("pressed", &[]);
@@ -111,6 +134,17 @@ fn test_settings_button_opens_settings(ctx: &TestContext) -> godot::task::TaskHa
                 "expected MenuState::Settings after clicking Settings, got {menu_state:?}"
             );
         });
+        
+
+        assert!(
+            !main_panel.is_visible(),
+            "expected MainPanel to be hidden after clicking Settings"
+        );
+
+        assert!(
+            settings_panel.is_visible(),
+            "expected SettingsPanel to be visible after we have clicked the settings button"
+        );
 
         hud.clone().queue_free();
         app.cleanup().await;
