@@ -1,0 +1,21 @@
+[workspace]
+resolver = "3"
+members = ["crates/*", "games/*/rust"]
+
+# Single source of truth for the versions every crate in the monorepo shares.
+# Games and shared crates all inherit these via `{ workspace = true }`. Keeping
+# bevy/godot/godot-bevy identical across the whole dylib is a hard requirement:
+# a duplicated godot-ffi in one cdylib fails at gdextension registration.
+[workspace.dependencies]
+bevy = { version = "0.18", default-features = false, features = ["bevy_state", "bevy_asset", "bevy_log"] }
+godot = "0.4.5"
+godot-bevy = { version = "0.11.0", features = ["default"] }
+cargo-godot-lib = "0.2.0"
+bevy_asset_loader = "0.26"
+derive_more = { version = "2.1.1", features = ["mul", "as_ref", "deref"] }
+thiserror = "2.0.13"
+
+jam-core = { path = "crates/jam-core" }
+jam-settings = { path = "crates/jam-settings" }
+jam-audio = { path = "crates/jam-audio" }
+jam-menu = { path = "crates/jam-menu" }

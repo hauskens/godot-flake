@@ -1,4 +1,0 @@
-[build]
-# Emit compiled artifacts inside the Godot project so res:// can reference them
-# without escaping the project root (required for exports to bundle the library).
-target-dir = "../godot/rust-target"

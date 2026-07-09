@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3 uid="uid://jk00ykbeqv3q"]
+
+[ext_resource type="PackedScene" uid="uid://xq8sasqhe644" path="res://addons/jamkit/HUD.tscn" id="1_ig7tw"]
+
+[node name="Main" type="Node2D"]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="HUD" parent="CanvasLayer" instance=ExtResource("1_ig7tw")]

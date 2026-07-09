@@ -1,0 +1,11 @@
+[package]
+name = "jam-settings"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+bevy.workspace = true
+godot.workspace = true
+godot-bevy.workspace = true
+jam-core.workspace = true
+thiserror.workspace = true
