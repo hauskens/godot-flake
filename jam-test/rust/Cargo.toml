@@ -1,0 +1,25 @@
+[package]
+name = "jam-test"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+crate-type = ["cdylib"]
+
+[[bin]]
+path = "run_godot.rs"
+name = "run_jam_test"
+
+[dependencies]
+bevy.workspace = true
+cargo-godot-lib.workspace = true
+godot.workspace = true
+godot-bevy.workspace = true
+godot-bevy-test = { workspace = true, optional = true }
+jam-audio.workspace = true
+jam-core.workspace = true
+jam-menu.workspace = true
+jam-settings.workspace = true
+
+[features]
+itest = ["dep:godot-bevy-test"]

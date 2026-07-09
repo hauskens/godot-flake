@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["crates/*", "games/*/rust"]
+members = ["crates/*", "games/*/rust", "jam-test/rust"]
 
 # Single source of truth for the versions every crate in the monorepo shares.
 # Games and shared crates all inherit these via `{ workspace = true }`. Keeping
@@ -10,6 +10,7 @@ members = ["crates/*", "games/*/rust"]
 bevy = { version = "0.18", default-features = false, features = ["bevy_state", "bevy_asset", "bevy_log"] }
 godot = "0.4.5"
 godot-bevy = { version = "0.11.0", features = ["default"] }
+godot-bevy-test = { version = "0.11.0" }
 cargo-godot-lib = "0.2.0"
 bevy_asset_loader = "0.26"
 derive_more = { version = "2.1.1", features = ["mul", "as_ref", "deref"] }

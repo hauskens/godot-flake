@@ -20,5 +20,7 @@ jam-settings = { workspace = true }
 jam-audio = { workspace = true }
 jam-menu = { workspace = true }
 
+godot-bevy-test = { workspace = true, optional = true }
+
 [features]
-itest = []
+itest = ["dep:godot-bevy-test"]
