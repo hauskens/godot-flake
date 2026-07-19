@@ -13,7 +13,10 @@ pub use commands::{
     CommandSystemPlugin, NodeCommand, UICommand, UIElement, UIHandles, WindowCommand,
 };
 pub use states::{GameState, MenuState};
-pub use types::{Gain, SceneResolution, Volume, VolumeError, VolumeSettings};
+pub use types::{
+    AudioOutputDevice, AudioOutputDeviceList, Gain, SceneResolution, Volume, VolumeError,
+    VolumeSettings,
+};
 
 /// Wires up the shared foundation:
 /// - Bevy's [`StatesPlugin`] plus the `GameState`/`MenuState` states,

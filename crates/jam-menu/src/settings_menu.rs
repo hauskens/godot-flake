@@ -9,22 +9,26 @@ use bevy::{
         schedule::IntoScheduleConfigs,
         system::{Res, ResMut},
     },
-    log::error,
+    log::{error, info, warn},
     state::state::{NextState, OnEnter, OnExit},
 };
-use godot::classes::Slider;
+use godot::classes::{AudioServer, Slider};
 use godot::obj::Singleton;
 use godot_bevy::interop::signal_names::{BaseButtonSignals, OptionButtonSignals};
 use godot_bevy::prelude::*;
 
 use jam_audio::PlaySfxMessage;
-use jam_core::{GameState, MenuState, SceneResolution, UICommand, UIElement, UIHandles, Volume, WindowCommand};
+use jam_core::{
+    AudioOutputDevice, GameState, MenuState, SceneResolution, UICommand, UIElement, UIHandles,
+    Volume, WindowCommand, types::AudioOutputDeviceList,
+};
 use jam_settings::{GameSettings, LoadSettingsRequested, SaveSettingsRequested};
 
 #[derive(Resource, Default)]
 pub struct SettingsAssets {
     pub panel: Option<GodotNodeHandle>,
     pub resolution_option: Option<GodotNodeHandle>,
+    pub audio_output_devices_option: Option<GodotNodeHandle>,
     pub master_volume_slider: Option<GodotNodeHandle>,
     pub music_volume_slider: Option<GodotNodeHandle>,
     pub sfx_volume_slider: Option<GodotNodeHandle>,
@@ -35,6 +39,7 @@ pub struct SettingsAssets {
     /// at startup from `RESOLUTIONS` plus the current window resolution; the
     /// `item_selected` index maps directly into this list.
     pub resolutions: Vec<SceneResolution>,
+    pub available_audio_output_devices: AudioOutputDeviceList,
 }
 
 pub struct SettingsMenuPlugin;
@@ -46,6 +51,7 @@ impl Plugin for SettingsMenuPlugin {
             .add_plugins(GodotSignalsPlugin::<MasterVolumeChanged>::default())
             .add_plugins(GodotSignalsPlugin::<MusicVolumeChanged>::default())
             .add_plugins(GodotSignalsPlugin::<SfxVolumeChanged>::default())
+            .add_plugins(GodotSignalsPlugin::<AudioOutputDeviceSelected>::default())
             // Same one-shot init/connect pattern as the main menu: the settings
             // panel lives in the same scene and just starts hidden.
             .add_systems(
@@ -53,6 +59,7 @@ impl Plugin for SettingsMenuPlugin {
                 (
                     init_settings_assets,
                     populate_resolutions.after(init_settings_assets),
+                    populate_audio_output_devices.after(init_settings_assets),
                     set_volume_sliders.after(init_settings_assets),
                     connect_settings.after(init_settings_assets),
                 ),
@@ -62,6 +69,7 @@ impl Plugin for SettingsMenuPlugin {
             .add_observer(on_master_volume_changed)
             .add_observer(on_music_volume_changed)
             .add_observer(on_sfx_volume_changed)
+            .add_observer(on_audio_output_device_selected)
             .add_systems(
                 OnEnter(MenuState::Settings),
                 (show_settings_panel, set_volume_sliders),
@@ -77,6 +85,9 @@ pub struct SettingsUi {
 
     #[node("SettingsPanel/TabContainer/Display/Resolution/OptionDropdown")]
     pub resolution_option: GodotNodeHandle,
+
+    #[node("SettingsPanel/TabContainer/Audio/OutputDevice/OptionDropdown")]
+    pub audio_output_devices_option: GodotNodeHandle,
 
     #[node("SettingsPanel/TabContainer/Audio/Volumes/MasterVolume/HSlider")]
     pub master_volume_slider: GodotNodeHandle,
@@ -109,6 +120,7 @@ fn init_settings_assets(
 
                 assets.panel = Some(ui.panel);
                 assets.resolution_option = Some(ui.resolution_option);
+                assets.audio_output_devices_option = Some(ui.audio_output_devices_option);
                 assets.master_volume_slider = Some(ui.master_volume_slider);
                 assets.music_volume_slider = Some(ui.music_volume_slider);
                 assets.sfx_volume_slider = Some(ui.sfx_volume_slider);
@@ -124,7 +136,10 @@ fn init_settings_assets(
             }
         },
         None => {
-            error!("No jamkit menu root found (group '{}')", crate::JAMKIT_MENU_GROUP);
+            error!(
+                "No jamkit menu root found (group '{}')",
+                crate::JAMKIT_MENU_GROUP
+            );
         }
     }
 }
@@ -164,23 +179,57 @@ fn populate_resolutions(mut assets: ResMut<SettingsAssets>, mut godot: GodotAcce
     assets.resolutions = resolutions;
 }
 
+fn populate_audio_output_devices(mut assets: ResMut<SettingsAssets>, mut godot: GodotAccess) {
+    use godot::classes::OptionButton;
+
+    let Some(handle) = assets.audio_output_devices_option else {
+        warn!("No audio output devices option found in settings assets");
+        return;
+    };
+    let Some(mut option) = godot.try_get::<OptionButton>(handle) else {
+        warn!("No audio output devices option found in godot");
+        return;
+    };
+
+    let devices = AudioOutputDeviceList::default();
+    info!("Devices: {:?}", devices);
+    let current = AudioOutputDevice::from_current();
+    info!("Current audio output device: {}", current);
+
+    option.clear();
+    for device in &devices.get_devices() {
+        option.add_item(device.to_string().as_str());
+    }
+    option.select(
+        devices
+            .get_devices()
+            .iter()
+            .position(|device| device == &current)
+            .unwrap_or_else(|| devices.get_devices().len() - 1) as i32,
+    );
+    assets.available_audio_output_devices = devices;
+}
+
 fn set_volume_sliders(
     assets: Res<SettingsAssets>,
     mut godot: GodotAccess,
     settings: Res<GameSettings>,
 ) {
     if let Some(handle) = assets.master_volume_slider
-        && let Some(mut slider) = godot.try_get::<Slider>(handle) {
-            slider.set_value(*settings.get_volume_settings().get_master_volume());
-        }
+        && let Some(mut slider) = godot.try_get::<Slider>(handle)
+    {
+        slider.set_value(*settings.get_volume_settings().get_master_volume());
+    }
     if let Some(handle) = assets.music_volume_slider
-        && let Some(mut slider) = godot.try_get::<Slider>(handle) {
-            slider.set_value(*settings.get_volume_settings().get_music_volume());
-        }
+        && let Some(mut slider) = godot.try_get::<Slider>(handle)
+    {
+        slider.set_value(*settings.get_volume_settings().get_music_volume());
+    }
     if let Some(handle) = assets.sfx_volume_slider
-        && let Some(mut slider) = godot.try_get::<Slider>(handle) {
-            slider.set_value(*settings.get_volume_settings().get_sfx_volume());
-        }
+        && let Some(mut slider) = godot.try_get::<Slider>(handle)
+    {
+        slider.set_value(*settings.get_volume_settings().get_sfx_volume());
+    }
 }
 
 #[derive(Event, Debug, Clone)]
@@ -203,6 +252,10 @@ struct SfxVolumeChanged {
     volume: Volume,
 }
 
+#[derive(Event, Debug, Clone)]
+struct AudioOutputDeviceSelected {
+    device: AudioOutputDevice,
+}
 // Each settings control needs its own strongly-typed signal handle, so the
 // argument count is inherent rather than a smell worth splitting up.
 #[allow(clippy::too_many_arguments)]
@@ -213,6 +266,7 @@ fn connect_settings(
     signal_master_volume: GodotSignals<MasterVolumeChanged>,
     signal_music_volume: GodotSignals<MusicVolumeChanged>,
     signal_sfx_volume: GodotSignals<SfxVolumeChanged>,
+    signal_audio_output_device: GodotSignals<AudioOutputDeviceSelected>,
     signal_load: GodotSignals<LoadSettingsRequested>,
     signal_save: GodotSignals<SaveSettingsRequested>,
     signal_play_test_sound: GodotSignals<PlaySfxMessage>,
@@ -240,6 +294,23 @@ fn connect_settings(
                 // `item_selected` carries the chosen index as its single arg.
                 let index = args.first().and_then(|v| v.try_to::<i64>().ok())?;
                 Some(ResolutionSelected { index })
+            },
+        );
+    }
+    if let Some(handle) = assets.audio_output_devices_option {
+        let devices = assets.available_audio_output_devices.get_devices();
+        signal_audio_output_device.connect(
+            handle,
+            OptionButtonSignals::ITEM_SELECTED,
+            None,
+            move |args, _node_handle, _ent| {
+                let index = args.first().and_then(|v| v.try_to::<i64>().ok())?;
+                let device = devices.get(index as usize)?.clone();
+                if AudioOutputDevice::default() != device {
+                    Some(AudioOutputDeviceSelected { device })
+                } else {
+                    None
+                }
             },
         );
     }
@@ -394,4 +465,17 @@ fn hide_settings_panel(mut ui_commands: MessageWriter<UICommand>) {
         target: UIElement::SettingsPanel,
         visible: false,
     });
+}
+
+fn on_audio_output_device_selected(
+    trigger: On<AudioOutputDeviceSelected>,
+    mut game_settings: ResMut<GameSettings>,
+) {
+    info!(
+        "new Audio output device selected: {}",
+        trigger.device.to_string()
+    );
+    game_settings.set_audio_output_device(trigger.device.clone());
+    let mut audio_server = AudioServer::singleton();
+    audio_server.set_output_device(trigger.device.to_string().as_str());
 }

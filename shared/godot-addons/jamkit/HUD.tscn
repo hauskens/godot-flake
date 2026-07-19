@@ -176,6 +176,20 @@ layout_mode = 2
 theme = ExtResource("1_k5de2")
 value = 50.0
 
+[node name="OutputDevice" type="HBoxContainer" parent="SettingsPanel/TabContainer/Audio"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+size_flags_horizontal = 4
+theme = ExtResource("1_k5de2")
+
+[node name="Label" type="Label" parent="SettingsPanel/TabContainer/Audio/OutputDevice"]
+layout_mode = 2
+text = "Output device: "
+
+[node name="OptionDropdown" type="OptionButton" parent="SettingsPanel/TabContainer/Audio/OutputDevice"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+
 [node name="Nav" type="HBoxContainer" parent="SettingsPanel"]
 layout_mode = 2
 size_flags_horizontal = 4

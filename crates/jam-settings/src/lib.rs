@@ -6,14 +6,14 @@
 
 use bevy::prelude::*;
 use godot::{
-    classes::ConfigFile,
+    classes::{AudioServer, ConfigFile},
     meta::ToGodot,
-    obj::{Gd, NewGd},
+    obj::{Gd, NewGd, Singleton},
 };
 use godot_bevy::plugins::signals::GodotSignalsPlugin;
 use thiserror::Error;
 
-use jam_core::{Volume, VolumeError, VolumeSettings};
+use jam_core::{AudioOutputDevice, Volume, VolumeError, VolumeSettings};
 
 const SETTINGS_PATH: &str = "user://settings.cfg";
 
@@ -47,6 +47,7 @@ impl Plugin for GameSettingsPlugin {
 #[derive(Default, Resource)]
 pub struct GameSettings {
     volume_settings: VolumeSettings,
+    audio_output_device: Option<AudioOutputDevice>,
 }
 
 #[derive(Error, Clone, Debug, PartialEq)]
@@ -70,6 +71,14 @@ impl GameSettings {
         self.volume_settings = volume_settings;
     }
 
+    pub fn get_audio_output_device(&self) -> Option<&AudioOutputDevice> {
+        self.audio_output_device.as_ref()
+    }
+
+    pub fn set_audio_output_device(&mut self, audio_output_device: AudioOutputDevice) {
+        self.audio_output_device = Some(audio_output_device);
+    }
+
     pub fn save_settings(&self) {
         let mut config = ConfigFile::new_gd();
         config.load(SETTINGS_PATH);
@@ -90,6 +99,14 @@ impl GameSettings {
             "sfx_volume",
             &(*volume.get_sfx_volume()).to_variant(),
         );
+
+        if let Some(audio_output_device) = &self.audio_output_device {
+            config.set_value(
+                AudioOutputDevice::SETTINGS_SECTION,
+                AudioOutputDevice::SETTINGS_KEY,
+                &audio_output_device.to_string().to_variant(),
+            );
+        }
 
         info!("Saving settings to {}", SETTINGS_PATH);
 
@@ -112,7 +129,18 @@ impl GameSettings {
         );
 
         info!("Loaded volume settings: {:?}", volume_settings);
-        Ok(Self { volume_settings })
+
+        let audio_output_device = load_audio_output_device(&config)?;
+        if let Some(device) = audio_output_device.clone() {
+            info!("Loaded audio output device: {:?}", device);
+            let mut audio_server = AudioServer::singleton();
+            audio_server.set_output_device(device.to_string().as_str());
+        }
+
+        Ok(Self {
+            volume_settings,
+            audio_output_device,
+        })
     }
 }
 
@@ -138,7 +166,32 @@ fn load_volume(
     })
 }
 
-fn on_save_settings_requested(_trigger: On<SaveSettingsRequested>, game_settings: Res<GameSettings>) {
+fn load_audio_output_device(
+    config: &Gd<ConfigFile>,
+) -> Result<Option<AudioOutputDevice>, GameSettingsError> {
+    if !config.has_section_key(
+        AudioOutputDevice::SETTINGS_SECTION,
+        AudioOutputDevice::SETTINGS_KEY,
+    ) {
+        return Ok(None);
+    }
+
+    let value = config
+        .get_value(
+            AudioOutputDevice::SETTINGS_SECTION,
+            AudioOutputDevice::SETTINGS_KEY,
+        )
+        .try_to::<String>()
+        .map_err(|_| GameSettingsError::WrongType {
+            key: AudioOutputDevice::SETTINGS_KEY.to_owned(),
+        })?;
+    Ok(Some(AudioOutputDevice::from(value)))
+}
+
+fn on_save_settings_requested(
+    _trigger: On<SaveSettingsRequested>,
+    game_settings: Res<GameSettings>,
+) {
     info!("Saving settings");
     game_settings.save_settings();
 }

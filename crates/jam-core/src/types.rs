@@ -8,6 +8,9 @@
 use std::ops::Mul;
 
 use derive_more::{AsRef, Deref, Display};
+use godot::classes::AudioServer;
+use godot::obj::Singleton;
+use godot::prelude::GString;
 use godot::register::GodotConvert;
 use thiserror::Error;
 
@@ -138,5 +141,60 @@ impl SceneResolution {
     }
     pub fn _to_tuple(&self) -> (i32, i32) {
         (self.width, self.height)
+    }
+}
+
+#[derive(Clone, PartialEq, Eq, Debug, Display)]
+pub struct AudioOutputDevice(String);
+
+impl AudioOutputDevice {
+    pub const SETTINGS_SECTION: &str = "audio";
+    pub const SETTINGS_KEY: &str = "output_device";
+    pub fn new(device: GString) -> Self {
+        Self(device.to_string())
+    }
+    pub fn to_string(&self) -> String {
+        self.0.clone()
+    }
+    pub fn from_current() -> Self {
+        let mut server = AudioServer::singleton();
+        Self(server.get_output_device().to_string())
+    }
+}
+
+impl From<String> for AudioOutputDevice {
+    fn from(value: String) -> Self {
+        Self(value)
+    }
+}
+
+impl Default for AudioOutputDevice {
+    fn default() -> Self {
+        Self::from_current()
+    }
+}
+
+#[derive(Clone, PartialEq, Eq, Debug)]
+pub struct AudioOutputDeviceList(Vec<AudioOutputDevice>);
+
+impl AudioOutputDeviceList {
+    pub fn new(devices: Vec<AudioOutputDevice>) -> Self {
+        Self(devices)
+    }
+    pub fn get_devices(&self) -> Vec<AudioOutputDevice> {
+        self.0.clone()
+    }
+}
+
+impl Default for AudioOutputDeviceList {
+    fn default() -> Self {
+        let mut server = AudioServer::singleton();
+        let devices = server.get_output_device_list().to_vec();
+        Self(
+            devices
+                .into_iter()
+                .map(|device| AudioOutputDevice::new(device))
+                .collect(),
+        )
     }
 }

@@ -39,6 +39,11 @@ fn test_settings_defaults_loaded(ctx: &TestContext) -> godot::task::TaskHandle {
                 Volume::default(),
                 "expected default sfx volume on a fresh project"
             );
+            assert_eq!(
+                settings.get_audio_output_device(),
+                None,
+                "expected no audio output device on a fresh project"
+            );
         });
 
         app.cleanup().await;
